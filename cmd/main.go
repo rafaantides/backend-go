@@ -1,8 +1,8 @@
 package main
 
 import (
-	"api-go/internal/handlers"
 	"api-go/internal/repository"
+	"api-go/internal/routes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,8 +12,8 @@ func main() {
 
 	r := gin.Default()
 
-	// Criando rota POST
-	r.POST("/debts", handlers.CreateDebtHandler)
+	api := r.Group("/api")
+	routes.RegisterDebtRoutes(api.Group("/debts"))
 
 	r.Run(":8080")
 }
