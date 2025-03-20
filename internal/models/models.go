@@ -30,3 +30,29 @@ type DebtRequest struct {
 	Title        string `json:"title"`
 	Amount       string `json:"amount"`
 }
+
+type DebtResponse struct {
+	ID           uuid.UUID `json:"id"`
+	InvoiceTitle *string   `json:"invoice_title,omitempty"`
+	Title        string    `json:"title"`
+	Amount       float64   `json:"amount"`
+	PurchaseDate string    `json:"purchase_date"`
+	DueDate      *string   `json:"due_date"`
+	Category     *string   `json:"category,omitempty"`
+	StatusID     uuid.UUID `json:"status_id"`
+	CreatedAt    string    `json:"created_at"`
+	UpdatedAt    string    `json:"updated_at"`
+}
+
+type DebtFilters struct {
+	Title      string     `form:"title"`
+	CategoryID *uuid.UUID `form:"category_id"`
+	StatusID   *uuid.UUID `form:"status_id"`
+	MinAmount  *float64   `form:"min_amount"`
+	MaxAmount  *float64   `form:"max_amount"`
+	StartDate  string     `form:"start_date"`
+	EndDate    string     `form:"end_date"`
+	InvoiceID  *uuid.UUID `form:"invoice_id"`
+	Page       int        `form:"page" binding:"required"`
+	PageSize   int        `form:"page_size" binding:"required"`
+}

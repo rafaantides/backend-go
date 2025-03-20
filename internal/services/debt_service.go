@@ -56,3 +56,7 @@ func categorizeTransaction(name string) *string {
 	}
 	return nil
 }
+
+func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error) {
+	return repository.GetAllDebts(filters)
+}
