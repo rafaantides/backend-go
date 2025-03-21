@@ -11,14 +11,13 @@ func ToIntPointer(value int) *int {
 	return &value
 }
 
-func ToUUIDPointer(value string) *uuid.UUID {
-	// TODO: rever se é melhor retornar nil ou um erro
+func ToUUIDPointer(value string) (*uuid.UUID, error) {
 	if value == "" {
-		return nil
+		return nil, nil
 	}
 	parsedUUID, err := uuid.Parse(value)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return &parsedUUID
+	return &parsedUUID, nil
 }

@@ -1,15 +1,53 @@
 package repository
 
 import (
+	"api-go/internal/errs"
 	"api-go/internal/models"
 	"database/sql"
 	"fmt"
+
+	"github.com/google/uuid"
 )
+
+func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
+	var debt models.Debt
+
+	query := `SELECT * FROM debts WHERE id = $1`
+	row := DB.QueryRow(query, id)
+
+	err := row.Scan(&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.CategoryID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &debt, nil
+}
+
+func DeleteDebtByID(id uuid.UUID) error {
+	query := `DELETE FROM debts WHERE id = $1`
+	result, err := DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errs.ErrNoRows
+	}
+
+	return nil
+}
 
 func InsertDebt(debt models.Debt) (models.Debt, error) {
 	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date, created_at, updated_at)
 			  VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-			  RETURNING id, invoice_id, title, category_id, amount, purchase_date, due_date, status_id, created_at, updated_at`
+			  RETURNING *`
 
 	var newDebt models.Debt
 	err := DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID, debt.Amount, debt.PurchaseDate, debt.DueDate).
@@ -18,6 +56,24 @@ func InsertDebt(debt models.Debt) (models.Debt, error) {
 		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
 	}
 	return newDebt, nil
+}
+
+func UpdateDebt(debt models.Debt) (models.Debt, error) {
+	query := `
+		UPDATE debts 
+		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 
+		WHERE id = $5
+		RETURNING *
+	`
+	var updatedDebt models.Debt
+	err := DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.ID).
+		Scan(&updatedDebt.ID, &updatedDebt.Title, &updatedDebt.Amount, &updatedDebt.PurchaseDate, &updatedDebt.CategoryID)
+
+	if err != nil {
+		return models.Debt{}, fmt.Errorf("failed to update debt: %w", err)
+	}
+
+	return updatedDebt, nil
 }
 
 func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error) {

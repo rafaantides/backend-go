@@ -13,12 +13,12 @@ type ErrorResponse struct {
 
 type Debt struct {
 	ID           uuid.UUID  `json:"id"`
-	InvoiceID    *uuid.UUID `json:"invoice_id,omitempty"`
+	InvoiceID    *uuid.UUID `json:"invoice_id"`
 	Title        string     `json:"title"`
-	CategoryID   *uuid.UUID `json:"category_id,omitempty"`
+	CategoryID   *uuid.UUID `json:"category_id"`
 	Amount       float64    `json:"amount"`
 	PurchaseDate time.Time  `json:"purchase_date"`
-	DueDate      time.Time  `json:"due_date,omitempty"`
+	DueDate      time.Time  `json:"due_date"`
 	StatusID     uuid.UUID  `json:"status_id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
@@ -33,12 +33,12 @@ type DebtRequest struct {
 
 type DebtResponse struct {
 	ID           uuid.UUID `json:"id"`
-	InvoiceTitle *string   `json:"invoice_title,omitempty"`
+	InvoiceTitle *string   `json:"invoice_title"`
 	Title        string    `json:"title"`
 	Amount       float64   `json:"amount"`
 	PurchaseDate string    `json:"purchase_date"`
 	DueDate      *string   `json:"due_date"`
-	Category     *string   `json:"category,omitempty"`
+	Category     *string   `json:"category"`
 	StatusID     uuid.UUID `json:"status_id"`
 	CreatedAt    string    `json:"created_at"`
 	UpdatedAt    string    `json:"updated_at"`
@@ -55,4 +55,13 @@ type DebtFilters struct {
 	InvoiceID  *uuid.UUID `form:"invoice_id"`
 	Page       int        `form:"page" binding:"required"`
 	PageSize   int        `form:"page_size" binding:"required"`
+}
+
+
+type Category struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description *string   `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }

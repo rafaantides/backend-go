@@ -6,9 +6,10 @@ import (
 	"api-go/internal/repository"
 	"api-go/pkg/utils"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func ParseDebt(debtReq models.DebtRequest) (models.Debt, error) {
@@ -28,26 +29,18 @@ func ParseDebt(debtReq models.DebtRequest) (models.Debt, error) {
 		return models.Debt{}, fmt.Errorf("erro ao buscar categoria: %w", err)
 	}
 
+	invoiceID, err := utils.ToUUIDPointer(debtReq.InvoiceID)
+	if err != nil {
+		return models.Debt{}, fmt.Errorf("erro ao converter invoice_id: %w", err)
+	}
 	return models.Debt{
-		InvoiceID:    utils.ToUUIDPointer(debtReq.InvoiceID),
+		InvoiceID:    invoiceID,
 		Title:        debtReq.Title,
 		Amount:       amount,
 		PurchaseDate: parsedDate,
 		CategoryID:   categoryID,
 	}, nil
 
-}
-
-func CreateDebt(debt models.Debt) (models.Debt, error) {
-	log.Printf("Criando débito no serviço: %+v", debt)
-
-	createdDebt, err := repository.InsertDebt(debt)
-
-	if err != nil {
-		return models.Debt{}, fmt.Errorf("erro ao inserir débito: %w", err)
-	}
-
-	return createdDebt, nil
 }
 
 func categorizeTransaction(name string) *string {
@@ -57,6 +50,22 @@ func categorizeTransaction(name string) *string {
 	return nil
 }
 
+func CreateDebt(debt models.Debt) (models.Debt, error) {
+	return repository.InsertDebt(debt)
+}
+
+func UpdateDebt(debt models.Debt) (models.Debt, error) {
+	return repository.UpdateDebt(debt)
+}
+
 func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error) {
 	return repository.GetAllDebts(filters)
+}
+
+func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
+	return repository.GetDebtByID(id)
+}
+
+func DeleteDebtByID(id uuid.UUID) error {
+	return repository.DeleteDebtByID(id)
 }
