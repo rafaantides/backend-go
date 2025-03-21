@@ -43,6 +43,34 @@ func CreateDebtHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, createdDebt)
 }
 
+func GetDebtByIDHandler(c *gin.Context) {
+	debtID, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || debtID == nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: "ID do débito inválido",
+			Details: err.Error(),
+		})
+		return
+	}
+
+	debt, err := services.GetDebtByID(*debtID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNoRows) {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{
+				Message: "Débito não encontrado",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: "Erro ao buscar o debito",
+			Details: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, debt)
+}
+
 func GetAllDebtsHandler(c *gin.Context) {
 
 	var filters models.DebtFilters
@@ -87,24 +115,22 @@ func UpdateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	debtDB, err := services.GetDebtByID(*debtID)
+	_, err = services.GetDebtByID(*debtID)
 	if err != nil {
+		if errors.Is(err, errs.ErrNoRows) {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{
+				Message: "Débito não encontrado",
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "Erro ao buscar o debito",
 			Details: err.Error(),
 		})
 		return
 	}
-
-	if debtDB == nil {
-		c.JSON(http.StatusNotFound, models.ErrorResponse{
-			Message: "Debito não encontrado",
-		})
-		return
-	}
-
+	
 	var debtReq models.DebtRequest
-
 	if err := c.ShouldBindJSON(&debtReq); err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: "Requisição inválida",

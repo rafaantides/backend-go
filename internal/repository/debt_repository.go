@@ -18,7 +18,7 @@ func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
 	err := row.Scan(&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return nil, errs.ErrNoRows
 		}
 		return nil, err
 	}

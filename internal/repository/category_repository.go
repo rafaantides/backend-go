@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"api-go/internal/errs"
 	"api-go/internal/models"
 	"database/sql"
 
@@ -16,7 +17,7 @@ func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 	err := row.Scan(&model.ID, &model.Name, &model.Description, &model.CreatedAt, &model.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return nil, errs.ErrNoRows
 		}
 		return nil, err
 	}
