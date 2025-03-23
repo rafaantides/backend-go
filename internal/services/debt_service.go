@@ -1,7 +1,7 @@
 package services
 
 import (
-	"api-go/config"
+	"api-go/internal/config"
 	"api-go/internal/dto"
 	"api-go/internal/models"
 	"api-go/internal/repository"

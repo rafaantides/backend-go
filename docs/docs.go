@@ -59,7 +59,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Erro ao buscar dívidas",
+                        "description": "Erro interno",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -103,7 +103,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Erro ao salvar o débito",
+                        "description": "Erro interno",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -147,13 +147,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Débito não encontrado",
+                        "description": "Registro não encontrado",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Erro ao buscar o débito",
+                        "description": "Erro interno",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -204,13 +204,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Débito não encontrado",
+                        "description": "Registro não encontrado",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Erro ao atualizar o débito",
+                        "description": "Erro interno",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -240,7 +240,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "Débito deletado com sucesso"
+                        "description": "Registro deletado com sucesso"
                     },
                     "400": {
                         "description": "ID inválido",
@@ -249,13 +249,261 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Débito não encontrado",
+                        "description": "Registro não encontrado",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Erro ao deletar o débito",
+                        "description": "Erro interno",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices": {
+            "get": {
+                "description": "Retorna uma lista das faturas com paginação",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Faturas"
+                ],
+                "summary": "Listar todas as faturas",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Número da página",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Tamanho da página",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Invoice"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Parâmetros inválidos",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria uma nova fatura com os dados fornecidos no corpo da requisição",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Faturas"
+                ],
+                "summary": "Criar uma nova fatura",
+                "parameters": [
+                    {
+                        "description": "Dados da fatura",
+                        "name": "invoice",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InvoiceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Invoice"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/invoices/{id}": {
+            "get": {
+                "description": "Retorna uma fatura pelo ID fornecido na URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Faturas"
+                ],
+                "summary": "Buscar fatura por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da fatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Invoice"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Registro não encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Atualiza uma fatura existente com os novos dados fornecidos no corpo da requisição",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Faturas"
+                ],
+                "summary": "Atualizar uma fatura",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da fatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados da fatura",
+                        "name": "invoice",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InvoiceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Invoice"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida ou ID inválido",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Registro não encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove uma fatura pelo ID fornecido",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Faturas"
+                ],
+                "summary": "Deletar uma fatura",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da fatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Registro deletado com sucesso"
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Registro não encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -293,6 +541,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.InvoiceRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "issue_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Debt": {
             "type": "object",
             "properties": {
@@ -315,6 +580,35 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "purchase_date": {
+                    "type": "string"
+                },
+                "status_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Invoice": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issue_date": {
                     "type": "string"
                 },
                 "status_id": {

@@ -14,6 +14,13 @@ type DebtRequest struct {
 	Amount       string `json:"amount"`
 }
 
+type InvoiceRequest struct {
+	Title     string `json:"title"`
+	Amount    string `json:"amount"`
+	IssueDate string `json:"issue_date"`
+	DueDate   string `json:"due_date"`
+}
+
 type DebtResponse struct {
 	ID           uuid.UUID `json:"id"`
 	InvoiceTitle *string   `json:"invoice_title"`

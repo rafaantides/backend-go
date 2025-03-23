@@ -12,20 +12,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary Criar um novo débito
-// @Description Cria um novo débito com os dados fornecidos no corpo da requisição
-// @Tags Débitos
+// @Summary Criar uma nova fatura
+// @Description Cria uma nova fatura com os dados fornecidos no corpo da requisição
+// @Tags Faturas
 // @Accept json
 // @Produce json
-// @Param debt body dto.DebtRequest true "Dados do débito"
-// @Success 201 {object} models.Debt
+// @Param invoice body dto.InvoiceRequest true "Dados da fatura"
+// @Success 201 {object} models.Invoice
 // @Failure 400 {object} dto.ErrorResponse "Requisição inválida"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts [post]
-func CreateDebtHandler(c *gin.Context) {
-	var debtReq dto.DebtRequest
+// @Router /api/invoices [post]
+func CreateInvoiceHandler(c *gin.Context) {
+	var invoiceReq dto.InvoiceRequest
 
-	if err := c.ShouldBindJSON(&debtReq); err != nil {
+	if err := c.ShouldBindJSON(&invoiceReq); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Requisição inválida",
 			Details: err.Error(),
@@ -33,7 +33,7 @@ func CreateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	debt, err := services.ParseDebt(debtReq)
+	invoice, err := services.ParseInvoice(invoiceReq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Dados inválidos",
@@ -42,70 +42,70 @@ func CreateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	createdDebt, err := services.CreateDebt(debt)
+	createdInvoice, err := services.CreateInvoice(invoice)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao salvar a débito",
+			Message: "Erro ao salvar a fatura",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdDebt)
+	c.JSON(http.StatusCreated, createdInvoice)
 }
 
-// @Summary Buscar débito por ID
-// @Description Retorna um débito pelo ID fornecido na URL
-// @Tags Débitos
+// @Summary Buscar fatura por ID
+// @Description Retorna uma fatura pelo ID fornecido na URL
+// @Tags Faturas
 // @Accept json
 // @Produce json
-// @Param id path string true "ID do débito"
-// @Success 200 {object} models.Debt
+// @Param id path string true "ID da fatura"
+// @Success 200 {object} models.Invoice
 // @Failure 400 {object} dto.ErrorResponse "ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts/{id} [get]
-func GetDebtByIDHandler(c *gin.Context) {
-	debtID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || debtID == nil {
+// @Router /api/invoices/{id} [get]
+func GetInvoiceByIDHandler(c *gin.Context) {
+	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || invoiceID == nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "ID do débito inválido",
+			Message: "ID da fatura inválido",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	debt, err := services.GetDebtByID(*debtID)
+	invoice, err := services.GetInvoiceByID(*invoiceID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
 			c.JSON(http.StatusNotFound, dto.ErrorResponse{
-				Message: "Débito não encontrado",
+				Message: "Fatura não encontrada",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao buscar o débito",
+			Message: "Erro ao buscar a fatura",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, debt)
+	c.JSON(http.StatusOK, invoice)
 }
 
-// @Summary Listar todos os débitos
-// @Description Retorna uma lista de débitos com paginação
-// @Tags Débitos
+// @Summary Listar todas as faturas
+// @Description Retorna uma lista das faturas com paginação
+// @Tags Faturas
 // @Accept json
 // @Produce json
 // @Param page query int false "Número da página"
 // @Param pageSize query int false "Tamanho da página"
-// @Success 200 {array} models.Debt
+// @Success 200 {array} models.Invoice
 // @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts [get]
-func GetAllDebtsHandler(c *gin.Context) {
-	var filters dto.DebtFilters
+// @Router /api/invoices [get]
+func GetAllInvoicesHandler(c *gin.Context) {
+	var filters dto.InvoiceFilters
 
 	if err := c.ShouldBindQuery(&filters); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
@@ -118,10 +118,10 @@ func GetAllDebtsHandler(c *gin.Context) {
 	page := pagination.GetPage(filters.Page)
 	pageSize := pagination.GetPageSize(filters.PageSize)
 
-	debts, total, err := services.GetAllDebts(filters, page, pageSize)
+	invoices, total, err := services.GetAllInvoices(filters, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao buscar dívidas",
+			Message: "Erro ao buscar faturas",
 			Details: err.Error(),
 		})
 		return
@@ -129,48 +129,33 @@ func GetAllDebtsHandler(c *gin.Context) {
 
 	pagination.SetPaginationHeaders(c, page, pageSize, total)
 
-	c.JSON(http.StatusOK, debts)
+	c.JSON(http.StatusOK, invoices)
 }
 
-// @Summary Atualizar um débito
-// @Description Atualiza um débito existente com os novos dados fornecidos no corpo da requisição
-// @Tags Débitos
+// @Summary Atualizar uma fatura
+// @Description Atualiza uma fatura existente com os novos dados fornecidos no corpo da requisição
+// @Tags Faturas
 // @Accept json
 // @Produce json
-// @Param id path string true "ID do débito"
-// @Param debt body dto.DebtRequest true "Dados do débito"
-// @Success 200 {object} models.Debt
+// @Param id path string true "ID da fatura"
+// @Param invoice body dto.InvoiceRequest true "Dados da fatura"
+// @Success 200 {object} models.Invoice
 // @Failure 400 {object} dto.ErrorResponse "Requisição inválida ou ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts/{id} [put]
-func UpdateDebtHandler(c *gin.Context) {
-	debtID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || debtID == nil {
+// @Router /api/invoices/{id} [put]
+func UpdateInvoiceHandler(c *gin.Context) {
+	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || invoiceID == nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "ID do débito inválido",
+			Message: "ID da fatura inválido",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	_, err = services.GetDebtByID(*debtID)
-	if err != nil {
-		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{
-				Message: "Débito não encontrado",
-			})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao buscar o débito",
-			Details: err.Error(),
-		})
-		return
-	}
-
-	var debtReq dto.DebtRequest
-	if err := c.ShouldBindJSON(&debtReq); err != nil {
+	var invoiceReq dto.InvoiceRequest
+	if err := c.ShouldBindJSON(&invoiceReq); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Requisição inválida",
 			Details: err.Error(),
@@ -178,7 +163,7 @@ func UpdateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	debt, err := services.ParseDebt(debtReq)
+	invoice, err := services.ParseInvoice(invoiceReq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Dados inválidos",
@@ -187,50 +172,43 @@ func UpdateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	updateDebt, err := services.UpdateDebt(debt)
+	updatedInvoice, err := services.UpdateInvoice(invoice)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao atualizar o débito",
+			Message: "Erro ao atualizar a fatura",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, updateDebt)
+	c.JSON(http.StatusOK, updatedInvoice)
 }
 
-// @Summary Deletar um débito
-// @Description Remove um débito pelo ID fornecido
-// @Tags Débitos
+// @Summary Deletar uma fatura
+// @Description Remove uma fatura pelo ID fornecido
+// @Tags Faturas
 // @Accept json
 // @Produce json
-// @Param id path string true "ID do débito"
+// @Param id path string true "ID da fatura"
 // @Success 204 "Registro deletado com sucesso"
 // @Failure 400 {object} dto.ErrorResponse "ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts/{id} [delete]
-func DeleteDebtHandler(c *gin.Context) {
-	debtID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || debtID == nil {
+// @Router /api/invoices/{id} [delete]
+func DeleteInvoiceHandler(c *gin.Context) {
+	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || invoiceID == nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "ID do débito inválido",
+			Message: "ID da fatura inválido",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	err = services.DeleteDebtByID(*debtID)
+	err = services.DeleteInvoiceByID(*invoiceID)
 	if err != nil {
-		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{
-				Message: "Débito não encontrado",
-			})
-			return
-		}
-
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao deletar o débito",
+			Message: "Erro ao deletar a fatura",
 			Details: err.Error(),
 		})
 		return
