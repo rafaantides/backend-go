@@ -4,11 +4,52 @@ definitions:
     properties:
       amount:
         type: string
+      due_date:
+        type: string
       invoice_id:
         type: string
       purchase_date:
         type: string
       title:
+        type: string
+    type: object
+  dto.DebtResponse:
+    properties:
+      amount:
+        description: Valor do débito
+        type: number
+      category:
+        description: Nome da categoria do débito
+        type: string
+      category_id:
+        description: ID da categoria do débito
+        type: string
+      created_at:
+        description: Data de criação do débito
+        type: string
+      due_date:
+        description: Data de vencimento no formato YYYY-MM-DD
+        type: string
+      id:
+        description: ID único do débito
+        type: string
+      invoice_title:
+        description: Título da fatura associada
+        type: string
+      purchase_date:
+        description: Data da compra no formato YYYY-MM-DD
+        type: string
+      status:
+        description: Nome do status do débito
+        type: string
+      status_id:
+        description: ID do status do débito
+        type: string
+      title:
+        description: Título do débito
+        type: string
+      updated_at:
+        description: Data da última atualização do débito
         type: string
     type: object
   dto.ErrorResponse:
@@ -27,6 +68,27 @@ definitions:
       issue_date:
         type: string
       title:
+        type: string
+    type: object
+  dto.InvoiceResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: string
+      issue_date:
+        type: string
+      status:
+        type: string
+      status_id:
+        type: string
+      title:
+        type: string
+      updated_at:
         type: string
     type: object
   models.Debt:
@@ -82,24 +144,60 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retorna uma lista de débitos com paginação
+      description: Retorna uma lista de débitos com paginação e filtros opcionais
       parameters:
+      - description: Filtrar por título do débito
+        in: query
+        name: title
+        type: string
+      - description: Filtrar por ID da categoria (UUID)
+        in: query
+        name: category_id
+        type: string
+      - description: Filtrar por ID do status (UUID)
+        in: query
+        name: status_id
+        type: string
+      - description: Valor mínimo do débito
+        in: query
+        name: min_amount
+        type: number
+      - description: Valor máximo do débito
+        in: query
+        name: max_amount
+        type: number
+      - description: Filtrar por data de início (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Filtrar por data de término (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: Filtrar por ID da fatura (UUID)
+        in: query
+        name: invoice_id
+        type: string
       - description: Número da página
         in: query
         name: page
         type: integer
       - description: Tamanho da página
         in: query
-        name: pageSize
+        name: page_size
         type: integer
+      - description: 'Ordenação dos resultados (ex: amount, due_date)'
+        in: query
+        name: order_by
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Lista de débitos
           schema:
             items:
-              $ref: '#/definitions/models.Debt'
+              $ref: '#/definitions/dto.DebtResponse'
             type: array
         "400":
           description: Parâmetros inválidos
@@ -247,24 +345,52 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retorna uma lista das faturas com paginação
+      description: Retorna uma lista de faturas com filtros opcionais
       parameters:
+      - description: Título da fatura
+        in: query
+        name: title
+        type: string
+      - description: ID do status da fatura (UUID)
+        in: query
+        name: status_id
+        type: string
+      - description: Valor mínimo da fatura
+        in: query
+        name: min_amount
+        type: number
+      - description: Valor máximo da fatura
+        in: query
+        name: max_amount
+        type: number
+      - description: Data inicial para filtrar (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Data final para filtrar (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
       - description: Número da página
         in: query
         name: page
         type: integer
       - description: Tamanho da página
         in: query
-        name: pageSize
+        name: page_size
         type: integer
+      - description: 'Campo de ordenação (ex: title, amount)'
+        in: query
+        name: order_by
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Lista de faturas
           schema:
             items:
-              $ref: '#/definitions/models.Invoice'
+              $ref: '#/definitions/dto.InvoiceResponse'
             type: array
         "400":
           description: Parâmetros inválidos
@@ -274,7 +400,7 @@ paths:
           description: Erro interno
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Listar todas as faturas
+      summary: Listar faturas
       tags:
       - Faturas
     post:

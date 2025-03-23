@@ -94,13 +94,22 @@ func GetDebtByIDHandler(c *gin.Context) {
 }
 
 // @Summary Listar todos os débitos
-// @Description Retorna uma lista de débitos com paginação
+// @Description Retorna uma lista de débitos com paginação e filtros opcionais
 // @Tags Débitos
 // @Accept json
 // @Produce json
+// @Param title query string false "Filtrar por título do débito"
+// @Param category_id query string false "Filtrar por ID da categoria (UUID)"
+// @Param status_id query string false "Filtrar por ID do status (UUID)"
+// @Param min_amount query number false "Valor mínimo do débito"
+// @Param max_amount query number false "Valor máximo do débito"
+// @Param start_date query string false "Filtrar por data de início (YYYY-MM-DD)"
+// @Param end_date query string false "Filtrar por data de término (YYYY-MM-DD)"
+// @Param invoice_id query string false "Filtrar por ID da fatura (UUID)"
 // @Param page query int false "Número da página"
-// @Param pageSize query int false "Tamanho da página"
-// @Success 200 {array} models.Debt
+// @Param page_size query int false "Tamanho da página"
+// @Param order_by query string false "Ordenação dos resultados (ex: amount, due_date)"
+// @Success 200 {array} dto.DebtResponse "Lista de débitos"
 // @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
 // @Router /api/debts [get]

@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/debts": {
             "get": {
-                "description": "Retorna uma lista de débitos com paginação",
+                "description": "Retorna uma lista de débitos com paginação e filtros opcionais",
                 "consumes": [
                     "application/json"
                 ],
@@ -30,6 +30,54 @@ const docTemplate = `{
                 "summary": "Listar todos os débitos",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Filtrar por título do débito",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtrar por ID da categoria (UUID)",
+                        "name": "category_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtrar por ID do status (UUID)",
+                        "name": "status_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Valor mínimo do débito",
+                        "name": "min_amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Valor máximo do débito",
+                        "name": "max_amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtrar por data de início (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtrar por data de término (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtrar por ID da fatura (UUID)",
+                        "name": "invoice_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "Número da página",
                         "name": "page",
@@ -38,17 +86,23 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Tamanho da página",
-                        "name": "pageSize",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ordenação dos resultados (ex: amount, due_date)",
+                        "name": "order_by",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Lista de débitos",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Debt"
+                                "$ref": "#/definitions/dto.DebtResponse"
                             }
                         }
                     },
@@ -265,7 +319,7 @@ const docTemplate = `{
         },
         "/api/invoices": {
             "get": {
-                "description": "Retorna uma lista das faturas com paginação",
+                "description": "Retorna uma lista de faturas com filtros opcionais",
                 "consumes": [
                     "application/json"
                 ],
@@ -275,8 +329,44 @@ const docTemplate = `{
                 "tags": [
                     "Faturas"
                 ],
-                "summary": "Listar todas as faturas",
+                "summary": "Listar faturas",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Título da fatura",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID do status da fatura (UUID)",
+                        "name": "status_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Valor mínimo da fatura",
+                        "name": "min_amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Valor máximo da fatura",
+                        "name": "max_amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Data inicial para filtrar (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Data final para filtrar (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "Número da página",
@@ -286,17 +376,23 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Tamanho da página",
-                        "name": "pageSize",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campo de ordenação (ex: title, amount)",
+                        "name": "order_by",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Lista de faturas",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Invoice"
+                                "$ref": "#/definitions/dto.InvoiceResponse"
                             }
                         }
                     },
@@ -519,6 +615,9 @@ const docTemplate = `{
                 "amount": {
                     "type": "string"
                 },
+                "due_date": {
+                    "type": "string"
+                },
                 "invoice_id": {
                     "type": "string"
                 },
@@ -526,6 +625,59 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DebtResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Valor do débito",
+                    "type": "number"
+                },
+                "category": {
+                    "description": "Nome da categoria do débito",
+                    "type": "string"
+                },
+                "category_id": {
+                    "description": "ID da categoria do débito",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Data de criação do débito",
+                    "type": "string"
+                },
+                "due_date": {
+                    "description": "Data de vencimento no formato YYYY-MM-DD",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID único do débito",
+                    "type": "string"
+                },
+                "invoice_title": {
+                    "description": "Título da fatura associada",
+                    "type": "string"
+                },
+                "purchase_date": {
+                    "description": "Data da compra no formato YYYY-MM-DD",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Nome do status do débito",
+                    "type": "string"
+                },
+                "status_id": {
+                    "description": "ID do status do débito",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Título do débito",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "Data da última atualização do débito",
                     "type": "string"
                 }
             }
@@ -554,6 +706,38 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InvoiceResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issue_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "status_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
