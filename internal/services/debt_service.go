@@ -2,6 +2,7 @@ package services
 
 import (
 	"api-go/config"
+	"api-go/internal/dto"
 	"api-go/internal/models"
 	"api-go/internal/repository"
 	"api-go/pkg/utils"
@@ -12,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParseDebt(debtReq models.DebtRequest) (models.Debt, error) {
+func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	parsedDate, err := time.Parse("2006-01-02", debtReq.PurchaseDate)
 	if err != nil {
 		return models.Debt{}, fmt.Errorf("formato de data inválido, use YYYY-MM-DD: %w", err)
@@ -58,8 +59,8 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return repository.UpdateDebt(debt)
 }
 
-func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error) {
-	return repository.GetAllDebts(filters)
+func GetAllDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtResponse, int, error) {
+	return repository.GetAllDebts(filters, page, pageSize)
 }
 
 func GetDebtByID(id uuid.UUID) (*models.Debt, error) {

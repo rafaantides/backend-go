@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"api-go/internal/dto"
 	"api-go/internal/errs"
 	"api-go/internal/models"
 	"database/sql"
@@ -76,7 +77,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return updatedDebt, nil
 }
 
-func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error) {
+func GetAllDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtResponse, int, error) {
 	query := `
         SELECT 
             d.id, d.title, d.amount, d.purchase_date, d.due_date, d.status_id, 
@@ -139,7 +140,7 @@ func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error)
 	}
 
 	query += " ORDER BY d.purchase_date DESC LIMIT $%d OFFSET $%d"
-	args = append(args, filters.PageSize, (filters.Page-1)*filters.PageSize)
+	args = append(args, filters.PageSize, (page-1)*pageSize)
 
 	rows, err := DB.Query(fmt.Sprintf(query, argIndex, argIndex+1), args...)
 	if err != nil {
@@ -147,9 +148,9 @@ func GetAllDebts(filters models.DebtFilters) ([]models.DebtResponse, int, error)
 	}
 	defer rows.Close()
 
-	var debts []models.DebtResponse
+	var debts []dto.DebtResponse
 	for rows.Next() {
-		var debt models.DebtResponse
+		var debt dto.DebtResponse
 		var dueDate sql.NullString
 		var category, invoiceTitle sql.NullString
 
