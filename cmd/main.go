@@ -28,6 +28,7 @@ func main() {
 	api := r.Group("/api")
 
 	routes.RegisterDebtRoutes(api.Group("/debts"))
+	routes.RegisterInvoiceRoutes(api.Group("/invoices"))
 
 	r.Run(":8080")
 }

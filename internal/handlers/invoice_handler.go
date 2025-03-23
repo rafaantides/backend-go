@@ -93,18 +93,25 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, invoice)
 }
 
-// @Summary Listar todas as faturas
-// @Description Retorna uma lista das faturas com paginação
+// @Summary Listar faturas
+// @Description Retorna uma lista de faturas com filtros opcionais
 // @Tags Faturas
 // @Accept json
 // @Produce json
-// @Param page query int false "Número da página"
-// @Param pageSize query int false "Tamanho da página"
-// @Success 200 {array} models.Invoice
+// @Param title query string false "Título da fatura"
+// @Param status_id query string false "ID do status da fatura (UUID)"
+// @Param min_amount query number false "Valor mínimo da fatura"
+// @Param max_amount query number false "Valor máximo da fatura"
+// @Param start_date query string false "Data inicial para filtrar (YYYY-MM-DD)"
+// @Param end_date query string false "Data final para filtrar (YYYY-MM-DD)"
+// @Param page query integer false "Número da página"
+// @Param page_size query integer false "Tamanho da página"
+// @Param order_by query string false "Campo de ordenação (ex: title, amount)"
+// @Success 200 {array} dto.InvoiceResponse "Lista de faturas"
 // @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
 // @Router /api/invoices [get]
-func GetAllInvoicesHandler(c *gin.Context) {
+func ListInvoicesHandler(c *gin.Context) {
 	var filters dto.InvoiceFilters
 
 	if err := c.ShouldBindQuery(&filters); err != nil {
@@ -118,7 +125,7 @@ func GetAllInvoicesHandler(c *gin.Context) {
 	page := pagination.GetPage(filters.Page)
 	pageSize := pagination.GetPageSize(filters.PageSize)
 
-	invoices, total, err := services.GetAllInvoices(filters, page, pageSize)
+	invoices, total, err := services.ListInvoices(filters, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Message: "Erro ao buscar faturas",

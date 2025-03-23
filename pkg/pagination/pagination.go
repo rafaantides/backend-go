@@ -1,6 +1,7 @@
 package pagination
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,18 @@ func GetPageSize(pageSize *int) int {
 		return DefaultPageSize
 	}
 	return *pageSize
+}
+
+func GetOrderBy(orderBy *string, defaultOrder string, validColumns map[string]bool) (string, error) {
+	if orderBy == nil || *orderBy == "" {
+		return defaultOrder, nil
+	}
+
+	if !validColumns[*orderBy] {
+		return "", errors.New("")
+	}
+
+	return *orderBy, nil
 }
 
 func SetPaginationHeaders(c *gin.Context, page, pageSize, total int) {

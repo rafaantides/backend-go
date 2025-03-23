@@ -104,7 +104,7 @@ func GetDebtByIDHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
 // @Router /api/debts [get]
-func GetAllDebtsHandler(c *gin.Context) {
+func ListDebtsHandler(c *gin.Context) {
 	var filters dto.DebtFilters
 
 	if err := c.ShouldBindQuery(&filters); err != nil {
@@ -118,10 +118,10 @@ func GetAllDebtsHandler(c *gin.Context) {
 	page := pagination.GetPage(filters.Page)
 	pageSize := pagination.GetPageSize(filters.PageSize)
 
-	debts, total, err := services.GetAllDebts(filters, page, pageSize)
+	debts, total, err := services.ListDebts(filters, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "Erro ao buscar dívidas",
+			Message: "Erro ao buscar os débitos",
 			Details: err.Error(),
 		})
 		return

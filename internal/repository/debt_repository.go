@@ -11,12 +11,12 @@ import (
 )
 
 func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
-	var debt models.Debt
+	var data models.Debt
 
 	query := `SELECT * FROM debts WHERE id = $1`
 	row := DB.QueryRow(query, id)
 
-	err := row.Scan(&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.CategoryID)
+	err := row.Scan(&data.ID, &data.Title, &data.CategoryID, &data.Amount, &data.PurchaseDate, &data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.ErrNoRows
@@ -24,7 +24,7 @@ func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
 		return nil, err
 	}
 
-	return &debt, nil
+	return &data, nil
 }
 
 func DeleteDebtByID(id uuid.UUID) error {
@@ -46,44 +46,55 @@ func DeleteDebtByID(id uuid.UUID) error {
 }
 
 func InsertDebt(debt models.Debt) (models.Debt, error) {
-	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date, created_at, updated_at)
-			  VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date)
+			  VALUES ($1, $2, $3, $4, $5, $6)
 			  RETURNING *`
 
-	var newDebt models.Debt
+	var newData models.Debt
 	err := DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID, debt.Amount, debt.PurchaseDate, debt.DueDate).
-		Scan(&newDebt.ID, &newDebt.InvoiceID, &newDebt.Title, &newDebt.CategoryID, &newDebt.Amount, &newDebt.PurchaseDate, &newDebt.DueDate, &newDebt.StatusID, &newDebt.CreatedAt, &newDebt.UpdatedAt)
+		Scan(&newData.ID, &newData.InvoiceID, &newData.Title, &newData.CategoryID, &newData.Amount, &newData.PurchaseDate, &newData.DueDate, &newData.StatusID, &newData.CreatedAt, &newData.UpdatedAt)
 	if err != nil {
 		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
 	}
-	return newDebt, nil
+	return newData, nil
 }
 
 func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	query := `
 		UPDATE debts 
-		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 
-		WHERE id = $5
+		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 , status_id = $5
+		WHERE id = $6
 		RETURNING *
 	`
-	var updatedDebt models.Debt
-	err := DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.ID).
-		Scan(&updatedDebt.ID, &updatedDebt.Title, &updatedDebt.Amount, &updatedDebt.PurchaseDate, &updatedDebt.CategoryID)
+	var updatedData models.Debt
+	err := DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.StatusID, debt.ID).
+		Scan(&updatedData.ID, &updatedData.Title, &updatedData.Amount, &updatedData.PurchaseDate, &updatedData.CategoryID, &updatedData.StatusID, &updatedData.CreatedAt, &updatedData.UpdatedAt)
 
 	if err != nil {
 		return models.Debt{}, fmt.Errorf("failed to update debt: %w", err)
 	}
 
-	return updatedDebt, nil
+	return updatedData, nil
 }
 
-func GetAllDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtResponse, int, error) {
+func ListDebts(filters dto.DebtFilters, page int, pageSize int, orderBy string) ([]dto.DebtResponse, int, error) {
 	query := `
-        SELECT 
-            d.id, d.title, d.amount, d.purchase_date, d.due_date, d.status_id, 
-            d.created_at, d.updated_at, c.name AS category, i.title AS invoice_title
+        SELECT
+            d.id,
+			d.title,
+			d.amount,
+			d.purchase_date,
+			d.due_date,
+			d.category_id,
+			d.status_id,
+            d.created_at,
+			d.updated_at,
+			c.name AS category,
+			i.title AS invoice_title,
+			s.name AS status
         FROM debts d
         LEFT JOIN categories c ON d.category_id = c.id
+		LEFT JOIN payment_status s ON d.status_id = s.id
         LEFT JOIN invoices i ON d.invoice_id = i.id
     `
 
@@ -91,9 +102,9 @@ func GetAllDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtRes
 	var args []any
 	argIndex := 1
 
-	if filters.Title != "" {
+	if filters.Title != nil {
 		conditions = append(conditions, fmt.Sprintf("d.title ILIKE $%d", argIndex))
-		args = append(args, "%"+filters.Title+"%")
+		args = append(args, "%"+*filters.Title+"%")
 		argIndex++
 	}
 	if filters.CategoryID != nil {
@@ -116,14 +127,14 @@ func GetAllDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtRes
 		args = append(args, *filters.MaxAmount)
 		argIndex++
 	}
-	if filters.StartDate != "" {
+	if filters.StartDate != nil {
 		conditions = append(conditions, fmt.Sprintf("d.purchase_date >= $%d", argIndex))
-		args = append(args, filters.StartDate)
+		args = append(args, *filters.StartDate)
 		argIndex++
 	}
-	if filters.EndDate != "" {
+	if filters.EndDate != nil {
 		conditions = append(conditions, fmt.Sprintf("d.purchase_date <= $%d", argIndex))
-		args = append(args, filters.EndDate)
+		args = append(args, *filters.EndDate)
 		argIndex++
 	}
 	if filters.InvoiceID != nil {
@@ -139,48 +150,42 @@ func GetAllDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtRes
 		}
 	}
 
-	query += " ORDER BY d.purchase_date DESC LIMIT $%d OFFSET $%d"
-	args = append(args, filters.PageSize, (page-1)*pageSize)
+	query += fmt.Sprintf(" ORDER BY d.%s DESC", orderBy)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
+	args = append(args, pageSize, (page-1)*pageSize)
 
-	rows, err := DB.Query(fmt.Sprintf(query, argIndex, argIndex+1), args...)
+	rows, err := DB.Query(query, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
 
 	var debts []dto.DebtResponse
+	debts = make([]dto.DebtResponse, 0)
 	for rows.Next() {
 		var debt dto.DebtResponse
-		var dueDate sql.NullString
-		var category, invoiceTitle sql.NullString
 
 		err := rows.Scan(
-			&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &dueDate,
-			&debt.StatusID, &debt.CreatedAt, &debt.UpdatedAt, &category, &invoiceTitle,
+			&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.DueDate,
+			&debt.CategoryID, &debt.StatusID, &debt.CreatedAt, &debt.UpdatedAt,
+			&debt.Category, &debt.InvoiceTitle, &debt.Status,
 		)
 		if err != nil {
 			return nil, 0, err
 		}
-
-		if dueDate.Valid {
-			debt.DueDate = &dueDate.String
-		}
-		if category.Valid {
-			debt.Category = &category.String
-		}
-		if invoiceTitle.Valid {
-			debt.InvoiceTitle = &invoiceTitle.String
-		}
-
 		debts = append(debts, debt)
 	}
 
-	countQuery := "SELECT COUNT(*) FROM debts"
-	var total int
-	err = DB.QueryRow(countQuery).Scan(&total)
+	total, err := countDebts()
 	if err != nil {
 		return nil, 0, err
 	}
 
 	return debts, total, nil
+}
+
+func countDebts() (int, error) {
+	var total int
+	err := DB.QueryRow("SELECT COUNT(*) FROM debts").Scan(&total)
+	return total, err
 }

@@ -34,9 +34,8 @@ func GetCategoryIDByName(categoryName *string) (*uuid.UUID, error) {
 	var categoryID uuid.UUID
 	err := DB.QueryRow(query, categoryName).Scan(&categoryID)
 	if err != nil {
-		// TODO: rever se é melhor retornar nil ou um erro
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return nil, errs.ErrNoRows
 		}
 		return nil, err
 	}
