@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -9,24 +10,17 @@ import (
 
 // @title API GO
 // @version 1.0
-// @description Esta é a documentação da API
+// @description Esta API é projetada para monitoramento de dívidas, ajudando a organizar financeiramente.
 // @host localhost:8080
-// @BasePath /
+// @BasePath /api/v1
 // @schemes http
 func main() {
 	repository.ConnectDB()
 
 	r := gin.Default()
+	api := r.Group("/api/v1")
 
-	r.StaticFile("/swagger.json", "./docs/swagger.json")
-	r.Static("/static", "./static")
-
-	r.GET("/", func(c *gin.Context) {
-		c.File("./docs/docs.html")
-	})
-
-	api := r.Group("/api")
-
+	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(api.Group("/debts"))
 	routes.RegisterInvoiceRoutes(api.Group("/invoices"))
 

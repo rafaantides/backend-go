@@ -29,13 +29,13 @@ type DebtResponse struct {
 	PurchaseDate string `json:"purchase_date"`
 	// Data de vencimento no formato YYYY-MM-DD
 	DueDate *string `json:"due_date"`
-	// ID da categoria do débito
+	// ID da categoria
 	CategoryID *uuid.UUID `json:"category_id"`
-	// Nome da categoria do débito
+	// Nome da categoria
 	Category *string `json:"category"`
-	// ID do status do débito
+	// ID do status
 	StatusID uuid.UUID `json:"status_id"`
-	// Nome do status do débito
+	// Nome do status
 	Status string `json:"status"`
 	// Data de criação do débito
 	CreatedAt string `json:"created_at"`
@@ -58,7 +58,6 @@ type DebtFilters struct {
 }
 
 // Invoices
-
 type InvoiceRequest struct {
 	Title     string `json:"title"`
 	Amount    string `json:"amount"`
@@ -67,15 +66,24 @@ type InvoiceRequest struct {
 }
 
 type InvoiceResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Title     string    `json:"title"`
-	Amount    float64   `json:"amount"`
-	IssueDate string    `json:"issue_date"`
-	DueDate   *string   `json:"due_date"`
-	StatusID  uuid.UUID `json:"status_id"`
-	Status    *string   `json:"status"`
-	CreatedAt string    `json:"created_at"`
-	UpdatedAt string    `json:"updated_at"`
+	// ID único da fatura
+	ID uuid.UUID `json:"id"`
+	// Título da fatura
+	Title string `json:"title"`
+	// Valor da fatura
+	Amount float64 `json:"amount"`
+	// Data de emissão no formato YYYY-MM-DD
+	IssueDate string `json:"issue_date"`
+	// Data de vencimento no formato YYYY-MM-DD
+	DueDate *string `json:"due_date"`
+	// ID do status
+	StatusID uuid.UUID `json:"status_id"`
+	// Nome do status
+	Status string `json:"status"`
+	// Data de criação da fatura
+	CreatedAt string `json:"created_at"`
+	// Data da última atualização da fatura
+	UpdatedAt string `json:"updated_at"`
 }
 
 type InvoiceFilters struct {

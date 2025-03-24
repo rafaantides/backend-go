@@ -21,7 +21,7 @@ import (
 // @Success 201 {object} models.Debt
 // @Failure 400 {object} dto.ErrorResponse "Requisição inválida"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts [post]
+// @Router /debts [post]
 func CreateDebtHandler(c *gin.Context) {
 	var debtReq dto.DebtRequest
 
@@ -64,7 +64,7 @@ func CreateDebtHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts/{id} [get]
+// @Router /debts/{id} [get]
 func GetDebtByIDHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
@@ -112,7 +112,7 @@ func GetDebtByIDHandler(c *gin.Context) {
 // @Success 200 {array} dto.DebtResponse "Lista de débitos"
 // @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts [get]
+// @Router /debts [get]
 func ListDebtsHandler(c *gin.Context) {
 	var filters dto.DebtFilters
 
@@ -152,7 +152,7 @@ func ListDebtsHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "Requisição inválida ou ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts/{id} [put]
+// @Router /debts/{id} [put]
 func UpdateDebtHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
@@ -218,7 +218,7 @@ func UpdateDebtHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/debts/{id} [delete]
+// @Router /debts/{id} [delete]
 func DeleteDebtHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {

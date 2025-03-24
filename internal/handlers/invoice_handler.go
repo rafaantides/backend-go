@@ -21,7 +21,7 @@ import (
 // @Success 201 {object} models.Invoice
 // @Failure 400 {object} dto.ErrorResponse "Requisição inválida"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/invoices [post]
+// @Router /invoices [post]
 func CreateInvoiceHandler(c *gin.Context) {
 	var invoiceReq dto.InvoiceRequest
 
@@ -64,7 +64,7 @@ func CreateInvoiceHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/invoices/{id} [get]
+// @Router /invoices/{id} [get]
 func GetInvoiceByIDHandler(c *gin.Context) {
 	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || invoiceID == nil {
@@ -110,7 +110,7 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 // @Success 200 {array} dto.InvoiceResponse "Lista de faturas"
 // @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/invoices [get]
+// @Router /invoices [get]
 func ListInvoicesHandler(c *gin.Context) {
 	var filters dto.InvoiceFilters
 
@@ -150,7 +150,7 @@ func ListInvoicesHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "Requisição inválida ou ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/invoices/{id} [put]
+// @Router /invoices/{id} [put]
 func UpdateInvoiceHandler(c *gin.Context) {
 	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || invoiceID == nil {
@@ -201,7 +201,7 @@ func UpdateInvoiceHandler(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "ID inválido"
 // @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
-// @Router /api/invoices/{id} [delete]
+// @Router /invoices/{id} [delete]
 func DeleteInvoiceHandler(c *gin.Context) {
 	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || invoiceID == nil {

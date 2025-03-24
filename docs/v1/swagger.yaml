@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1
 definitions:
   dto.DebtRequest:
     properties:
@@ -19,10 +19,10 @@ definitions:
         description: Valor do débito
         type: number
       category:
-        description: Nome da categoria do débito
+        description: Nome da categoria
         type: string
       category_id:
-        description: ID da categoria do débito
+        description: ID da categoria
         type: string
       created_at:
         description: Data de criação do débito
@@ -40,10 +40,10 @@ definitions:
         description: Data da compra no formato YYYY-MM-DD
         type: string
       status:
-        description: Nome do status do débito
+        description: Nome do status
         type: string
       status_id:
-        description: ID do status do débito
+        description: ID do status
         type: string
       title:
         description: Título do débito
@@ -73,22 +73,31 @@ definitions:
   dto.InvoiceResponse:
     properties:
       amount:
+        description: Valor da fatura
         type: number
       created_at:
+        description: Data de criação da fatura
         type: string
       due_date:
+        description: Data de vencimento no formato YYYY-MM-DD
         type: string
       id:
+        description: ID único da fatura
         type: string
       issue_date:
+        description: Data de emissão no formato YYYY-MM-DD
         type: string
       status:
+        description: Nome do status
         type: string
       status_id:
+        description: ID do status
         type: string
       title:
+        description: Título da fatura
         type: string
       updated_at:
+        description: Data da última atualização da fatura
         type: string
     type: object
   models.Debt:
@@ -136,11 +145,12 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: Esta é a documentação da API
+  description: Esta API é projetada para monitoramento de dívidas, ajudando a organizar
+    financeiramente.
   title: API GO
   version: "1.0"
 paths:
-  /api/debts:
+  /debts:
     get:
       consumes:
       - application/json
@@ -239,7 +249,7 @@ paths:
       summary: Criar um novo débito
       tags:
       - Débitos
-  /api/debts/{id}:
+  /debts/{id}:
     delete:
       consumes:
       - application/json
@@ -341,7 +351,7 @@ paths:
       summary: Atualizar um débito
       tags:
       - Débitos
-  /api/invoices:
+  /invoices:
     get:
       consumes:
       - application/json
@@ -432,7 +442,7 @@ paths:
       summary: Criar uma nova fatura
       tags:
       - Faturas
-  /api/invoices/{id}:
+  /invoices/{id}:
     delete:
       consumes:
       - application/json
