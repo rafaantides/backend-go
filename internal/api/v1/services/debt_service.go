@@ -1,13 +1,13 @@
 package services
 
 import (
-	"api-go/internal/config"
-	"api-go/internal/dto"
-	"api-go/internal/errs"
-	"api-go/internal/models"
-	"api-go/internal/repository"
-	"api-go/pkg/pagination"
-	"api-go/pkg/utils"
+	"backend-go/internal/api/config"
+	"backend-go/internal/api/errs"
+	"backend-go/internal/api/models"
+	"backend-go/internal/api/repository"
+	"backend-go/internal/api/v1/dto"
+	"backend-go/pkg/pagination"
+	"backend-go/pkg/utils"
 	"errors"
 	"strconv"
 	"time"

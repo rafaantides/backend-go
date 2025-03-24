@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"api-go/internal/dto"
-	"api-go/internal/errs"
-	"api-go/internal/models"
+	"backend-go/internal/api/errs"
+	"backend-go/internal/api/models"
+	"backend-go/internal/api/v1/dto"
 	"database/sql"
 	"fmt"
 

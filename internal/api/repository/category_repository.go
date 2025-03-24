@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"api-go/internal/errs"
-	"api-go/internal/models"
+	"backend-go/internal/api/errs"
+	"backend-go/internal/api/models"
 	"database/sql"
 
 	"github.com/google/uuid"

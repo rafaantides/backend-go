@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"api-go/internal/dto"
-	"api-go/internal/errs"
-	"api-go/internal/services"
-	"api-go/pkg/pagination"
-	"api-go/pkg/utils"
+	"backend-go/internal/api/errs"
+	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/services"
+	"backend-go/pkg/pagination"
+	"backend-go/pkg/utils"
 	"errors"
 	"net/http"
 
