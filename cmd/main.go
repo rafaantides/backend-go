@@ -2,7 +2,7 @@
 package main
 
 import (
-	"backend-go/internal/api/v1/repository"
+	"backend-go/internal/api/repository"
 	"backend-go/internal/api/v1/routes"
 
 	"github.com/gin-gonic/gin"
