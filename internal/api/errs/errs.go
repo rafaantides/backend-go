@@ -10,6 +10,8 @@ var (
 	ErrUnknown          = errors.New("erro desconhecido")
 	ErrPermissionDenied = errors.New("permissão negada")
 	ErrTimeout          = errors.New("tempo limite excedido")
+	ErrInvalidPage      = errors.New("página inválida")
+	ErrInvalidPageSize  = errors.New("tamanho da página inválido")
 )
 
 func ErrInvalidField(field string) error {
@@ -45,7 +47,7 @@ func ErrInvalidFormat(field, expected string) error {
 }
 
 func ErrInvalidOrderBy(field string) error {
-	return fmt.Errorf("'%s' é um campo inválido para ordenação", field)
+	return fmt.Errorf("'%s' é um valor inválido para ordenação", field)
 }
 
 func ErrUnknownWithContext(context string, err error) error {

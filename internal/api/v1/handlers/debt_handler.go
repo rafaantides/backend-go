@@ -124,10 +124,17 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
-	page := pagination.GetPage(filters.Page)
-	pageSize := pagination.GetPageSize(filters.PageSize)
+	pagination, err := pagination.NewPagination(c)
 
-	debts, total, err := services.ListDebts(filters, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "Parâmetros inválidos",
+			Details: err.Error(),
+		})
+		return
+	}
+
+	debts, total, err := services.ListDebts(filters, pagination)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Message: "Erro ao buscar os débitos",
@@ -136,7 +143,7 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
-	pagination.SetPaginationHeaders(c, page, pageSize, total)
+	pagination.SetPaginationHeaders(c, total)
 
 	c.JSON(http.StatusOK, debts)
 }

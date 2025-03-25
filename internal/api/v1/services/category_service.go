@@ -2,7 +2,7 @@ package services
 
 import (
 	"backend-go/internal/api/models"
-	"backend-go/internal/api/repository"
+	"backend-go/internal/api/v1/repository"
 
 	"github.com/google/uuid"
 )

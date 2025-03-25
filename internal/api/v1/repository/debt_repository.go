@@ -4,6 +4,7 @@ import (
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
 
@@ -77,7 +78,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return updatedData, nil
 }
 
-func ListDebts(filters dto.DebtFilters, page int, pageSize int, orderBy string) ([]dto.DebtResponse, int, error) {
+func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dto.DebtResponse, error) {
 	query := `
         SELECT
             d.id,
@@ -150,18 +151,27 @@ func ListDebts(filters dto.DebtFilters, page int, pageSize int, orderBy string) 
 		}
 	}
 
-	query += fmt.Sprintf(" ORDER BY d.%s DESC", orderBy)
+	query += fmt.Sprintf(" ORDER BY d.%s DESC", pagination.OrderBy)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pageSize, (page-1)*pageSize)
+	args = append(args, pagination.PageSize, pagination.Offset())
 
 	rows, err := DB.Query(query, args...)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
-	defer rows.Close()
 
-	var debts []dto.DebtResponse
-	debts = make([]dto.DebtResponse, 0)
+	return newDebtResponse(rows)
+}
+
+func CountDebts() (int, error) {
+	var total int
+	err := DB.QueryRow("SELECT COUNT(*) FROM debts").Scan(&total)
+	return total, err
+}
+
+func newDebtResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
+	defer rows.Close()
+	debts := make([]dto.DebtResponse, 0)
 	for rows.Next() {
 		var debt dto.DebtResponse
 
@@ -171,21 +181,10 @@ func ListDebts(filters dto.DebtFilters, page int, pageSize int, orderBy string) 
 			&debt.Category, &debt.InvoiceTitle, &debt.Status,
 		)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		debts = append(debts, debt)
 	}
 
-	total, err := countDebts()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return debts, total, nil
-}
-
-func countDebts() (int, error) {
-	var total int
-	err := DB.QueryRow("SELECT COUNT(*) FROM debts").Scan(&total)
-	return total, err
+	return debts, nil
 }

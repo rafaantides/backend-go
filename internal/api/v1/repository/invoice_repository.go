@@ -4,6 +4,7 @@ import (
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
 
@@ -77,7 +78,7 @@ func UpdateInvoice(invoice models.Invoice) (models.Invoice, error) {
 	return updatedData, nil
 }
 
-func ListInvoices(filters dto.InvoiceFilters, page int, pageSize int, orderBy string) ([]dto.InvoiceResponse, int, error) {
+func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination) ([]dto.InvoiceResponse, error) {
 	query := `
         SELECT 
             i.id, 
@@ -135,40 +136,39 @@ func ListInvoices(filters dto.InvoiceFilters, page int, pageSize int, orderBy st
 		}
 	}
 
-	query += fmt.Sprintf(" ORDER BY i.%s DESC", orderBy)
+	query += fmt.Sprintf(" ORDER BY i.%s DESC", pagination.OrderBy)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pageSize, (page-1)*pageSize)
+	args = append(args, pagination.PageSize, pagination.Offset())
 
 	rows, err := DB.Query(query, args...)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
-	defer rows.Close()
 
-	var invoices []dto.InvoiceResponse
-	invoices = make([]dto.InvoiceResponse, 0)
+	return newInvoiceResponse(rows)
+}
+
+func CountInvoices() (int, error) {
+	var total int
+	err := DB.QueryRow("SELECT COUNT(*) FROM invoices").Scan(&total)
+	return total, err
+}
+
+func newInvoiceResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
+	defer rows.Close()
+	invoices := make([]dto.InvoiceResponse, 0)
 	for rows.Next() {
 		var invoice dto.InvoiceResponse
+
 		err := rows.Scan(
 			&invoice.ID, &invoice.Title, &invoice.Amount, &invoice.IssueDate, &invoice.DueDate,
-			&invoice.StatusID, &invoice.Status, &invoice.CreatedAt, &invoice.UpdatedAt,
+			&invoice.StatusID, &invoice.CreatedAt, &invoice.UpdatedAt, &invoice.Status,
 		)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
 		invoices = append(invoices, invoice)
 	}
 
-	total, err := countInvoices()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return invoices, total, nil
-}
-
-func countInvoices() (int, error) {
-	var total int
-	err := DB.QueryRow("SELECT COUNT(*) FROM invoices").Scan(&total)
-	return total, err
+	return invoices, nil
 }

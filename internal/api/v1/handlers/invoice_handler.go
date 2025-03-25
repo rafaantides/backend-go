@@ -122,10 +122,17 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	page := pagination.GetPage(filters.Page)
-	pageSize := pagination.GetPageSize(filters.PageSize)
+	pagination, err := pagination.NewPagination(c)
 
-	invoices, total, err := services.ListInvoices(filters, page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "Parâmetros inválidos",
+			Details: err.Error(),
+		})
+		return
+	}
+
+	invoices, total, err := services.ListInvoices(filters, pagination)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Message: "Erro ao buscar faturas",
@@ -134,7 +141,7 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	pagination.SetPaginationHeaders(c, page, pageSize, total)
+	pagination.SetPaginationHeaders(c, total)
 
 	c.JSON(http.StatusOK, invoices)
 }

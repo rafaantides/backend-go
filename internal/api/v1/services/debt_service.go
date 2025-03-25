@@ -4,8 +4,8 @@ import (
 	"backend-go/internal/api/config"
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/models"
-	"backend-go/internal/api/repository"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/repository"
 	"backend-go/pkg/pagination"
 	"backend-go/pkg/utils"
 	"errors"
@@ -75,7 +75,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return repository.UpdateDebt(debt)
 }
 
-func ListDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtResponse, int, error) {
+func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dto.DebtResponse, int, error) {
 
 	validColumns := map[string]bool{
 		"id":            true,
@@ -90,12 +90,22 @@ func ListDebts(filters dto.DebtFilters, page int, pageSize int) ([]dto.DebtRespo
 		"updated_at":    true,
 	}
 
-	orderBy, err := pagination.GetOrderBy(filters.OrderBy, "purchase_date", validColumns)
-	if err != nil {
-		return nil, 0, errs.ErrInvalidOrderBy(*filters.OrderBy)
+	if err := pagination.ValidateOrderBy("purchase_date", validColumns); err != nil {
+		return nil, 0, err
 	}
 
-	return repository.ListDebts(filters, page, pageSize, orderBy)
+	debts, err := repository.ListDebts(filters, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := repository.CountDebts()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return debts, total, nil
+
 }
 
 func GetDebtByID(id uuid.UUID) (*models.Debt, error) {

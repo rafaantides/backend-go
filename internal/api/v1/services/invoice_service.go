@@ -3,8 +3,8 @@ package services
 import (
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/models"
-	"backend-go/internal/api/repository"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/repository"
 	"backend-go/pkg/pagination"
 	"strconv"
 	"time"
@@ -45,7 +45,7 @@ func UpdateInvoice(Invoice models.Invoice) (models.Invoice, error) {
 	return repository.UpdateInvoice(Invoice)
 }
 
-func ListInvoices(filters dto.InvoiceFilters, page int, pageSize int) ([]dto.InvoiceResponse, int, error) {
+func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination) ([]dto.InvoiceResponse, int, error) {
 
 	validColumns := map[string]bool{
 		"id":         true,
@@ -58,12 +58,21 @@ func ListInvoices(filters dto.InvoiceFilters, page int, pageSize int) ([]dto.Inv
 		"updated_at": true,
 	}
 
-	orderBy, err := pagination.GetOrderBy(filters.OrderBy, "issue_date", validColumns)
-	if err != nil {
-		return nil, 0, errs.ErrInvalidOrderBy(*filters.OrderBy)
+	if err := pagination.ValidateOrderBy("issue_date", validColumns); err != nil {
+		return nil, 0, err
 	}
 
-	return repository.ListInvoices(filters, page, pageSize, orderBy)
+	invoices, err := repository.ListInvoices(filters, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	total, err := repository.CountInvoices()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return invoices, total, nil
 }
 
 func GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
