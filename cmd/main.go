@@ -2,6 +2,7 @@
 package main
 
 import (
+	"backend-go/internal/api/middlewares"
 	"backend-go/internal/api/v1/repository"
 	"backend-go/internal/api/v1/routes"
 
@@ -18,11 +19,13 @@ func main() {
 	repository.ConnectDB()
 
 	r := gin.Default()
-	api := r.Group("/api/v1")
+	v1 := r.Group("/api/v1")
+
+	v1.Use(middlewares.UUIDValidatorMiddleware())
 
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
-	routes.RegisterDebtRoutes(api.Group("/debts"))
-	routes.RegisterInvoiceRoutes(api.Group("/invoices"))
+	routes.RegisterDebtRoutes(v1.Group("/debts"))
+	routes.RegisterInvoiceRoutes(v1.Group("/invoices"))
 
 	r.Run(":8080")
 }

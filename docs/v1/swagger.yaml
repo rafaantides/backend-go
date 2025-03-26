@@ -52,7 +52,7 @@ definitions:
         description: Data da última atualização do débito
         type: string
     type: object
-  dto.ErrorResponse:
+  errs.ErrorResponse:
     properties:
       details:
         type: string
@@ -212,11 +212,11 @@ paths:
         "400":
           description: Parâmetros inválidos
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Listar todos os débitos
       tags:
       - Débitos
@@ -241,11 +241,11 @@ paths:
         "400":
           description: Requisição inválida
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Criar um novo débito
       tags:
       - Débitos
@@ -268,15 +268,15 @@ paths:
         "400":
           description: ID inválido
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "404":
           description: Registro não encontrado
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Deletar um débito
       tags:
       - Débitos
@@ -300,15 +300,15 @@ paths:
         "400":
           description: ID inválido
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "404":
           description: Registro não encontrado
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Buscar débito por ID
       tags:
       - Débitos
@@ -339,15 +339,15 @@ paths:
         "400":
           description: Requisição inválida ou ID inválido
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "404":
           description: Registro não encontrado
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Atualizar um débito
       tags:
       - Débitos
@@ -405,11 +405,11 @@ paths:
         "400":
           description: Parâmetros inválidos
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Listar faturas
       tags:
       - Faturas
@@ -434,11 +434,11 @@ paths:
         "400":
           description: Requisição inválida
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Criar uma nova fatura
       tags:
       - Faturas
@@ -461,15 +461,15 @@ paths:
         "400":
           description: ID inválido
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "404":
           description: Registro não encontrado
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Deletar uma fatura
       tags:
       - Faturas
@@ -493,15 +493,15 @@ paths:
         "400":
           description: ID inválido
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "404":
           description: Registro não encontrado
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Buscar fatura por ID
       tags:
       - Faturas
@@ -532,15 +532,15 @@ paths:
         "400":
           description: Requisição inválida ou ID inválido
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "404":
           description: Registro não encontrado
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
         "500":
           description: Erro interno
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            $ref: '#/definitions/errs.ErrorResponse'
       summary: Atualizar uma fatura
       tags:
       - Faturas

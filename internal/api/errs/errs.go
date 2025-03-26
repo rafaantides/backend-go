@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+	Details string `json:"details,omitempty"`
+}
+
 var (
 	ErrNoRows           = errors.New("registro não encontrado")
 	ErrUnknown          = errors.New("erro desconhecido")

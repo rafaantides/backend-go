@@ -19,14 +19,14 @@ import (
 // @Produce json
 // @Param debt body dto.DebtRequest true "Dados do débito"
 // @Success 201 {object} models.Debt
-// @Failure 400 {object} dto.ErrorResponse "Requisição inválida"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "Requisição inválida"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts [post]
 func CreateDebtHandler(c *gin.Context) {
 	var debtReq dto.DebtRequest
 
 	if err := c.ShouldBindJSON(&debtReq); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Requisição inválida",
 			Details: err.Error(),
 		})
@@ -35,7 +35,7 @@ func CreateDebtHandler(c *gin.Context) {
 
 	debt, err := services.ParseDebt(debtReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Dados inválidos",
 			Details: err.Error(),
 		})
@@ -44,7 +44,7 @@ func CreateDebtHandler(c *gin.Context) {
 
 	createdDebt, err := services.CreateDebt(debt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao salvar a débito",
 			Details: err.Error(),
 		})
@@ -61,14 +61,14 @@ func CreateDebtHandler(c *gin.Context) {
 // @Produce json
 // @Param id path string true "ID do débito"
 // @Success 200 {object} models.Debt
-// @Failure 400 {object} dto.ErrorResponse "ID inválido"
-// @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "ID inválido"
+// @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [get]
 func GetDebtByIDHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "ID do débito inválido",
 			Details: err.Error(),
 		})
@@ -78,12 +78,12 @@ func GetDebtByIDHandler(c *gin.Context) {
 	debt, err := services.GetDebtByID(*debtID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{
+			c.JSON(http.StatusNotFound, errs.ErrorResponse{
 				Message: "Débito não encontrado",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao buscar o débito",
 			Details: err.Error(),
 		})
@@ -110,30 +110,23 @@ func GetDebtByIDHandler(c *gin.Context) {
 // @Param page_size query int false "Tamanho da página"
 // @Param order_by query string false "Ordenação dos resultados (ex: amount, due_date)"
 // @Success 200 {array} dto.DebtResponse "Lista de débitos"
-// @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "Parâmetros inválidos"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts [get]
 func ListDebtsHandler(c *gin.Context) {
 	var flt dto.DebtFilters
 	if err := c.ShouldBindQuery(&flt); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Parâmetros inválidos",
 			Details: err.Error(),
 		})
 		return
 	}
 
-	if errDetail := utils.ValidateUUIDArrayFields(&flt); errDetail != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "Parâmetros inválidos",
-			Details: *errDetail,
-		})
-		return
-	}
-
 	pgn, err := pagination.NewPagination(c)
+
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Parâmetros inválidos",
 			Details: err.Error(),
 		})
@@ -143,7 +136,7 @@ func ListDebtsHandler(c *gin.Context) {
 	debts, total, err := services.ListDebts(flt, pgn)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao buscar os débitos",
 			Details: err.Error(),
 		})
@@ -163,14 +156,14 @@ func ListDebtsHandler(c *gin.Context) {
 // @Param id path string true "ID do débito"
 // @Param debt body dto.DebtRequest true "Dados do débito"
 // @Success 200 {object} models.Debt
-// @Failure 400 {object} dto.ErrorResponse "Requisição inválida ou ID inválido"
-// @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "Requisição inválida ou ID inválido"
+// @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [put]
 func UpdateDebtHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "ID do débito inválido",
 			Details: err.Error(),
 		})
@@ -180,12 +173,12 @@ func UpdateDebtHandler(c *gin.Context) {
 	_, err = services.GetDebtByID(*debtID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{
+			c.JSON(http.StatusNotFound, errs.ErrorResponse{
 				Message: "Débito não encontrado",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao buscar o débito",
 			Details: err.Error(),
 		})
@@ -194,7 +187,7 @@ func UpdateDebtHandler(c *gin.Context) {
 
 	var debtReq dto.DebtRequest
 	if err := c.ShouldBindJSON(&debtReq); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Requisição inválida",
 			Details: err.Error(),
 		})
@@ -203,7 +196,7 @@ func UpdateDebtHandler(c *gin.Context) {
 
 	debt, err := services.ParseDebt(debtReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Dados inválidos",
 			Details: err.Error(),
 		})
@@ -212,7 +205,7 @@ func UpdateDebtHandler(c *gin.Context) {
 
 	updateDebt, err := services.UpdateDebt(debt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao atualizar o débito",
 			Details: err.Error(),
 		})
@@ -229,14 +222,14 @@ func UpdateDebtHandler(c *gin.Context) {
 // @Produce json
 // @Param id path string true "ID do débito"
 // @Success 204 "Registro deletado com sucesso"
-// @Failure 400 {object} dto.ErrorResponse "ID inválido"
-// @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "ID inválido"
+// @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [delete]
 func DeleteDebtHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "ID do débito inválido",
 			Details: err.Error(),
 		})
@@ -246,13 +239,13 @@ func DeleteDebtHandler(c *gin.Context) {
 	err = services.DeleteDebtByID(*debtID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{
+			c.JSON(http.StatusNotFound, errs.ErrorResponse{
 				Message: "Débito não encontrado",
 			})
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao deletar o débito",
 			Details: err.Error(),
 		})

@@ -2,11 +2,6 @@ package dto
 
 import "github.com/google/uuid"
 
-type ErrorResponse struct {
-	Message string `json:"message"`
-	Details string `json:"details,omitempty"`
-}
-
 // Debts
 type DebtRequest struct {
 	InvoiceID    string `json:"invoice_id"`
@@ -84,13 +79,9 @@ type InvoiceResponse struct {
 }
 
 type InvoiceFilters struct {
-	Title     *string    `form:"title"`
-	StatusID  *uuid.UUID `form:"status_id"`
-	MinAmount *float64   `form:"min_amount"`
-	MaxAmount *float64   `form:"max_amount"`
-	StartDate *string    `form:"start_date"`
-	EndDate   *string    `form:"end_date"`
-	Page      *int       `form:"page"`
-	PageSize  *int       `form:"page_size"`
-	OrderBy   *string    `form:"order_by"`
+	StatusID  *[]string `form:"status_id"`
+	MinAmount *float64  `form:"min_amount"`
+	MaxAmount *float64  `form:"max_amount"`
+	StartDate *string   `form:"start_date"`
+	EndDate   *string   `form:"end_date"`
 }

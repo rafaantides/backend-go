@@ -109,13 +109,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Parâmetros inválidos",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -153,13 +153,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Requisição inválida",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -197,19 +197,19 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Registro não encontrado",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -254,19 +254,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Requisição inválida ou ID inválido",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Registro não encontrado",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -299,19 +299,19 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Registro não encontrado",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -399,13 +399,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Parâmetros inválidos",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -443,13 +443,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Requisição inválida",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -487,19 +487,19 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Registro não encontrado",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -544,19 +544,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Requisição inválida ou ID inválido",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Registro não encontrado",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -589,19 +589,19 @@ const docTemplate = `{
                     "400": {
                         "description": "ID inválido",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Registro não encontrado",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Erro interno",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/errs.ErrorResponse"
                         }
                     }
                 }
@@ -682,7 +682,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ErrorResponse": {
+        "errs.ErrorResponse": {
             "type": "object",
             "properties": {
                 "details": {

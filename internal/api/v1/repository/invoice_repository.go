@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
@@ -98,14 +99,17 @@ func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.Inv
 	var args []any
 	argIndex := 1
 
-	if flt.Title != nil {
-		conditions = append(conditions, fmt.Sprintf("i.title ILIKE $%d", argIndex))
-		args = append(args, "%"+*flt.Title+"%")
-		argIndex++
+	if pgn.Search != "" {
+		conditions = append(conditions, fmt.Sprintf(
+			"(i.title ILIKE $%d OR s.name ILIKE $%d)",
+			argIndex, argIndex+1,
+		))
+		args = append(args, "%"+pgn.Search+"%", "%"+pgn.Search+"%")
+		argIndex += 2
 	}
 	if flt.StatusID != nil {
-		conditions = append(conditions, fmt.Sprintf("i.status_id = $%d", argIndex))
-		args = append(args, *flt.StatusID)
+		conditions = append(conditions, fmt.Sprintf("i.status_id = ANY($%d)", argIndex))
+		args = append(args, pq.Array(*flt.StatusID))
 		argIndex++
 	}
 	if flt.MinAmount != nil {

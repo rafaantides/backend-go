@@ -1,816 +1,754 @@
 {
-    "schemes": [
-        "http"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "Esta API é projetada para monitoramento de dívidas, ajudando a organizar financeiramente.",
-        "title": "API GO",
-        "contact": {},
-        "version": "1.0"
-    },
-    "host": "localhost:8080",
-    "basePath": "/api/v1",
-    "paths": {
-        "/debts": {
-            "get": {
-                "description": "Retorna uma lista de débitos com paginação e filtros opcionais",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Débitos"
-                ],
-                "summary": "Listar todos os débitos",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Filtrar por título do débito",
-                        "name": "title",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filtrar por ID da categoria (UUID)",
-                        "name": "category_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filtrar por ID do status (UUID)",
-                        "name": "status_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Valor mínimo do débito",
-                        "name": "min_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Valor máximo do débito",
-                        "name": "max_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filtrar por data de início (YYYY-MM-DD)",
-                        "name": "start_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filtrar por data de término (YYYY-MM-DD)",
-                        "name": "end_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filtrar por ID da fatura (UUID)",
-                        "name": "invoice_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Número da página",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Tamanho da página",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Ordenação dos resultados (ex: amount, due_date)",
-                        "name": "order_by",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lista de débitos",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.DebtResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Parâmetros inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Cria um novo débito com os dados fornecidos no corpo da requisição",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Débitos"
-                ],
-                "summary": "Criar um novo débito",
-                "parameters": [
-                    {
-                        "description": "Dados do débito",
-                        "name": "debt",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.DebtRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.Debt"
-                        }
-                    },
-                    "400": {
-                        "description": "Requisição inválida",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
+  "schemes": ["http"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Esta API é projetada para monitoramento de dívidas, ajudando a organizar financeiramente.",
+    "title": "API GO",
+    "contact": {},
+    "version": "1.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/debts": {
+      "get": {
+        "description": "Retorna uma lista de débitos com paginação e filtros opcionais",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Débitos"],
+        "summary": "Listar todos os débitos",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Filtrar por título do débito",
+            "name": "title",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filtrar por ID da categoria (UUID)",
+            "name": "category_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filtrar por ID do status (UUID)",
+            "name": "status_id",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Valor mínimo do débito",
+            "name": "min_amount",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Valor máximo do débito",
+            "name": "max_amount",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filtrar por data de início (YYYY-MM-DD)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filtrar por data de término (YYYY-MM-DD)",
+            "name": "end_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filtrar por ID da fatura (UUID)",
+            "name": "invoice_id",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Número da página",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Tamanho da página",
+            "name": "page_size",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Ordenação dos resultados (ex: amount, due_date)",
+            "name": "order_by",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de débitos",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.DebtResponse"
+              }
             }
-        },
-        "/debts/{id}": {
-            "get": {
-                "description": "Retorna um débito pelo ID fornecido na URL",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Débitos"
-                ],
-                "summary": "Buscar débito por ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID do débito",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Debt"
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Registro não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Atualiza um débito existente com os novos dados fornecidos no corpo da requisição",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Débitos"
-                ],
-                "summary": "Atualizar um débito",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID do débito",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Dados do débito",
-                        "name": "debt",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.DebtRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Debt"
-                        }
-                    },
-                    "400": {
-                        "description": "Requisição inválida ou ID inválido",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Registro não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Remove um débito pelo ID fornecido",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Débitos"
-                ],
-                "summary": "Deletar um débito",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID do débito",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Registro deletado com sucesso"
-                    },
-                    "400": {
-                        "description": "ID inválido",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Registro não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
+          },
+          "400": {
+            "description": "Parâmetros inválidos",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
             }
-        },
-        "/invoices": {
-            "get": {
-                "description": "Retorna uma lista de faturas com filtros opcionais",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Faturas"
-                ],
-                "summary": "Listar faturas",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Título da fatura",
-                        "name": "title",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID do status da fatura (UUID)",
-                        "name": "status_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Valor mínimo da fatura",
-                        "name": "min_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Valor máximo da fatura",
-                        "name": "max_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Data inicial para filtrar (YYYY-MM-DD)",
-                        "name": "start_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Data final para filtrar (YYYY-MM-DD)",
-                        "name": "end_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Número da página",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Tamanho da página",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Campo de ordenação (ex: title, amount)",
-                        "name": "order_by",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lista de faturas",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.InvoiceResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Parâmetros inválidos",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Cria uma nova fatura com os dados fornecidos no corpo da requisição",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Faturas"
-                ],
-                "summary": "Criar uma nova fatura",
-                "parameters": [
-                    {
-                        "description": "Dados da fatura",
-                        "name": "invoice",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.InvoiceRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.Invoice"
-                        }
-                    },
-                    "400": {
-                        "description": "Requisição inválida",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
             }
-        },
-        "/invoices/{id}": {
-            "get": {
-                "description": "Retorna uma fatura pelo ID fornecido na URL",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Faturas"
-                ],
-                "summary": "Buscar fatura por ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID da fatura",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Invoice"
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Registro não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Atualiza uma fatura existente com os novos dados fornecidos no corpo da requisição",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Faturas"
-                ],
-                "summary": "Atualizar uma fatura",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID da fatura",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Dados da fatura",
-                        "name": "invoice",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.InvoiceRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Invoice"
-                        }
-                    },
-                    "400": {
-                        "description": "Requisição inválida ou ID inválido",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Registro não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Remove uma fatura pelo ID fornecido",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Faturas"
-                ],
-                "summary": "Deletar uma fatura",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID da fatura",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Registro deletado com sucesso"
-                    },
-                    "400": {
-                        "description": "ID inválido",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Registro não encontrado",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Erro interno",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
+          }
         }
-    },
-    "definitions": {
-        "dto.DebtRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "string"
-                },
-                "due_date": {
-                    "type": "string"
-                },
-                "invoice_id": {
-                    "type": "string"
-                },
-                "purchase_date": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
+      },
+      "post": {
+        "description": "Cria um novo débito com os dados fornecidos no corpo da requisição",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Débitos"],
+        "summary": "Criar um novo débito",
+        "parameters": [
+          {
+            "description": "Dados do débito",
+            "name": "debt",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.DebtRequest"
             }
-        },
-        "dto.DebtResponse": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "description": "Valor do débito",
-                    "type": "number"
-                },
-                "category": {
-                    "description": "Nome da categoria",
-                    "type": "string"
-                },
-                "category_id": {
-                    "description": "ID da categoria",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "Data de criação do débito",
-                    "type": "string"
-                },
-                "due_date": {
-                    "description": "Data de vencimento no formato YYYY-MM-DD",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID único do débito",
-                    "type": "string"
-                },
-                "invoice_title": {
-                    "description": "Título da fatura associada",
-                    "type": "string"
-                },
-                "purchase_date": {
-                    "description": "Data da compra no formato YYYY-MM-DD",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Nome do status",
-                    "type": "string"
-                },
-                "status_id": {
-                    "description": "ID do status",
-                    "type": "string"
-                },
-                "title": {
-                    "description": "Título do débito",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Data da última atualização do débito",
-                    "type": "string"
-                }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.Debt"
             }
-        },
-        "dto.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
             }
-        },
-        "dto.InvoiceRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "string"
-                },
-                "due_date": {
-                    "type": "string"
-                },
-                "issue_date": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
             }
-        },
-        "dto.InvoiceResponse": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "description": "Valor da fatura",
-                    "type": "number"
-                },
-                "created_at": {
-                    "description": "Data de criação da fatura",
-                    "type": "string"
-                },
-                "due_date": {
-                    "description": "Data de vencimento no formato YYYY-MM-DD",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "ID único da fatura",
-                    "type": "string"
-                },
-                "issue_date": {
-                    "description": "Data de emissão no formato YYYY-MM-DD",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Nome do status",
-                    "type": "string"
-                },
-                "status_id": {
-                    "description": "ID do status",
-                    "type": "string"
-                },
-                "title": {
-                    "description": "Título da fatura",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Data da última atualização da fatura",
-                    "type": "string"
-                }
-            }
-        },
-        "models.Debt": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "category_id": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "due_date": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "invoice_id": {
-                    "type": "string"
-                },
-                "purchase_date": {
-                    "type": "string"
-                },
-                "status_id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Invoice": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "due_date": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "issue_date": {
-                    "type": "string"
-                },
-                "status_id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
+          }
         }
+      }
+    },
+    "/debts/{id}": {
+      "get": {
+        "description": "Retorna um débito pelo ID fornecido na URL",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Débitos"],
+        "summary": "Buscar débito por ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID do débito",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.Debt"
+            }
+          },
+          "400": {
+            "description": "ID inválido",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Atualiza um débito existente com os novos dados fornecidos no corpo da requisição",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Débitos"],
+        "summary": "Atualizar um débito",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID do débito",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Dados do débito",
+            "name": "debt",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.DebtRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.Debt"
+            }
+          },
+          "400": {
+            "description": "Requisição inválida ou ID inválido",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Remove um débito pelo ID fornecido",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Débitos"],
+        "summary": "Deletar um débito",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID do débito",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Registro deletado com sucesso"
+          },
+          "400": {
+            "description": "ID inválido",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/invoices": {
+      "get": {
+        "description": "Retorna uma lista de faturas com filtros opcionais",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Faturas"],
+        "summary": "Listar faturas",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Título da fatura",
+            "name": "title",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "ID do status da fatura (UUID)",
+            "name": "status_id",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Valor mínimo da fatura",
+            "name": "min_amount",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "description": "Valor máximo da fatura",
+            "name": "max_amount",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Data inicial para filtrar (YYYY-MM-DD)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Data final para filtrar (YYYY-MM-DD)",
+            "name": "end_date",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Número da página",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Tamanho da página",
+            "name": "page_size",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Campo de ordenação (ex: title, amount)",
+            "name": "order_by",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de faturas",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.InvoiceResponse"
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros inválidos",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Cria uma nova fatura com os dados fornecidos no corpo da requisição",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Faturas"],
+        "summary": "Criar uma nova fatura",
+        "parameters": [
+          {
+            "description": "Dados da fatura",
+            "name": "invoice",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.InvoiceRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.Invoice"
+            }
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/invoices/{id}": {
+      "get": {
+        "description": "Retorna uma fatura pelo ID fornecido na URL",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Faturas"],
+        "summary": "Buscar fatura por ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID da fatura",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.Invoice"
+            }
+          },
+          "400": {
+            "description": "ID inválido",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Atualiza uma fatura existente com os novos dados fornecidos no corpo da requisição",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Faturas"],
+        "summary": "Atualizar uma fatura",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID da fatura",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Dados da fatura",
+            "name": "invoice",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.InvoiceRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.Invoice"
+            }
+          },
+          "400": {
+            "description": "Requisição inválida ou ID inválido",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Remove uma fatura pelo ID fornecido",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Faturas"],
+        "summary": "Deletar uma fatura",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID da fatura",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Registro deletado com sucesso"
+          },
+          "400": {
+            "description": "ID inválido",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "schema": {
+              "$ref": "#/definitions/errs.ErrorResponse"
+            }
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "dto.DebtRequest": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string"
+        },
+        "due_date": {
+          "type": "string"
+        },
+        "invoice_id": {
+          "type": "string"
+        },
+        "purchase_date": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.DebtResponse": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "description": "Valor do débito",
+          "type": "number"
+        },
+        "category": {
+          "description": "Nome da categoria",
+          "type": "string"
+        },
+        "category_id": {
+          "description": "ID da categoria",
+          "type": "string"
+        },
+        "created_at": {
+          "description": "Data de criação do débito",
+          "type": "string"
+        },
+        "due_date": {
+          "description": "Data de vencimento no formato YYYY-MM-DD",
+          "type": "string"
+        },
+        "id": {
+          "description": "ID único do débito",
+          "type": "string"
+        },
+        "invoice_title": {
+          "description": "Título da fatura associada",
+          "type": "string"
+        },
+        "purchase_date": {
+          "description": "Data da compra no formato YYYY-MM-DD",
+          "type": "string"
+        },
+        "status": {
+          "description": "Nome do status",
+          "type": "string"
+        },
+        "status_id": {
+          "description": "ID do status",
+          "type": "string"
+        },
+        "title": {
+          "description": "Título do débito",
+          "type": "string"
+        },
+        "updated_at": {
+          "description": "Data da última atualização do débito",
+          "type": "string"
+        }
+      }
+    },
+    "errs.ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.InvoiceRequest": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string"
+        },
+        "due_date": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.InvoiceResponse": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "description": "Valor da fatura",
+          "type": "number"
+        },
+        "created_at": {
+          "description": "Data de criação da fatura",
+          "type": "string"
+        },
+        "due_date": {
+          "description": "Data de vencimento no formato YYYY-MM-DD",
+          "type": "string"
+        },
+        "id": {
+          "description": "ID único da fatura",
+          "type": "string"
+        },
+        "issue_date": {
+          "description": "Data de emissão no formato YYYY-MM-DD",
+          "type": "string"
+        },
+        "status": {
+          "description": "Nome do status",
+          "type": "string"
+        },
+        "status_id": {
+          "description": "ID do status",
+          "type": "string"
+        },
+        "title": {
+          "description": "Título da fatura",
+          "type": "string"
+        },
+        "updated_at": {
+          "description": "Data da última atualização da fatura",
+          "type": "string"
+        }
+      }
+    },
+    "models.Debt": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "category_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "due_date": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "invoice_id": {
+          "type": "string"
+        },
+        "purchase_date": {
+          "type": "string"
+        },
+        "status_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "models.Invoice": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "due_date": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": "string"
+        },
+        "status_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }

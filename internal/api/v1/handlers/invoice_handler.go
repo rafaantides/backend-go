@@ -19,14 +19,14 @@ import (
 // @Produce json
 // @Param invoice body dto.InvoiceRequest true "Dados da fatura"
 // @Success 201 {object} models.Invoice
-// @Failure 400 {object} dto.ErrorResponse "Requisição inválida"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "Requisição inválida"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [post]
 func CreateInvoiceHandler(c *gin.Context) {
 	var invoiceReq dto.InvoiceRequest
 
 	if err := c.ShouldBindJSON(&invoiceReq); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Requisição inválida",
 			Details: err.Error(),
 		})
@@ -35,7 +35,7 @@ func CreateInvoiceHandler(c *gin.Context) {
 
 	invoice, err := services.ParseInvoice(invoiceReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Dados inválidos",
 			Details: err.Error(),
 		})
@@ -44,7 +44,7 @@ func CreateInvoiceHandler(c *gin.Context) {
 
 	createdInvoice, err := services.CreateInvoice(invoice)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao salvar a fatura",
 			Details: err.Error(),
 		})
@@ -61,14 +61,14 @@ func CreateInvoiceHandler(c *gin.Context) {
 // @Produce json
 // @Param id path string true "ID da fatura"
 // @Success 200 {object} models.Invoice
-// @Failure 400 {object} dto.ErrorResponse "ID inválido"
-// @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "ID inválido"
+// @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [get]
 func GetInvoiceByIDHandler(c *gin.Context) {
 	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || invoiceID == nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "ID da fatura inválido",
 			Details: err.Error(),
 		})
@@ -78,12 +78,12 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 	invoice, err := services.GetInvoiceByID(*invoiceID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, dto.ErrorResponse{
+			c.JSON(http.StatusNotFound, errs.ErrorResponse{
 				Message: "Fatura não encontrada",
 			})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao buscar a fatura",
 			Details: err.Error(),
 		})
@@ -108,14 +108,13 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 // @Param page_size query integer false "Tamanho da página"
 // @Param order_by query string false "Campo de ordenação (ex: title, amount)"
 // @Success 200 {array} dto.InvoiceResponse "Lista de faturas"
-// @Failure 400 {object} dto.ErrorResponse "Parâmetros inválidos"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "Parâmetros inválidos"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [get]
 func ListInvoicesHandler(c *gin.Context) {
 	var flt dto.InvoiceFilters
-
 	if err := c.ShouldBindQuery(&flt); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Parâmetros inválidos",
 			Details: err.Error(),
 		})
@@ -125,7 +124,7 @@ func ListInvoicesHandler(c *gin.Context) {
 	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Parâmetros inválidos",
 			Details: err.Error(),
 		})
@@ -133,8 +132,9 @@ func ListInvoicesHandler(c *gin.Context) {
 	}
 
 	invoices, total, err := services.ListInvoices(flt, pgn)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao buscar faturas",
 			Details: err.Error(),
 		})
@@ -154,14 +154,14 @@ func ListInvoicesHandler(c *gin.Context) {
 // @Param id path string true "ID da fatura"
 // @Param invoice body dto.InvoiceRequest true "Dados da fatura"
 // @Success 200 {object} models.Invoice
-// @Failure 400 {object} dto.ErrorResponse "Requisição inválida ou ID inválido"
-// @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "Requisição inválida ou ID inválido"
+// @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [put]
 func UpdateInvoiceHandler(c *gin.Context) {
 	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || invoiceID == nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "ID da fatura inválido",
 			Details: err.Error(),
 		})
@@ -170,7 +170,7 @@ func UpdateInvoiceHandler(c *gin.Context) {
 
 	var invoiceReq dto.InvoiceRequest
 	if err := c.ShouldBindJSON(&invoiceReq); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Requisição inválida",
 			Details: err.Error(),
 		})
@@ -179,7 +179,7 @@ func UpdateInvoiceHandler(c *gin.Context) {
 
 	invoice, err := services.ParseInvoice(invoiceReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "Dados inválidos",
 			Details: err.Error(),
 		})
@@ -188,7 +188,7 @@ func UpdateInvoiceHandler(c *gin.Context) {
 
 	updatedInvoice, err := services.UpdateInvoice(invoice)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao atualizar a fatura",
 			Details: err.Error(),
 		})
@@ -205,14 +205,14 @@ func UpdateInvoiceHandler(c *gin.Context) {
 // @Produce json
 // @Param id path string true "ID da fatura"
 // @Success 204 "Registro deletado com sucesso"
-// @Failure 400 {object} dto.ErrorResponse "ID inválido"
-// @Failure 404 {object} dto.ErrorResponse "Registro não encontrado"
-// @Failure 500 {object} dto.ErrorResponse "Erro interno"
+// @Failure 400 {object} errs.ErrorResponse "ID inválido"
+// @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
+// @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [delete]
 func DeleteInvoiceHandler(c *gin.Context) {
 	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || invoiceID == nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
 			Message: "ID da fatura inválido",
 			Details: err.Error(),
 		})
@@ -221,7 +221,7 @@ func DeleteInvoiceHandler(c *gin.Context) {
 
 	err = services.DeleteInvoiceByID(*invoiceID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
 			Message: "Erro ao deletar a fatura",
 			Details: err.Error(),
 		})
