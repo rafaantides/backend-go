@@ -18,17 +18,17 @@ import (
 func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	purchaseDate, err := time.Parse("2006-01-02", debtReq.PurchaseDate)
 	if err != nil {
-		return models.Debt{}, errs.ErrParsingField("purchase_date", err)
+		return models.Debt{}, errs.ParsingField("purchase_date", err)
 	}
 
 	dueDate, err := time.Parse("2006-01-02", debtReq.DueDate)
 	if err != nil {
-		return models.Debt{}, errs.ErrParsingField("due_date", err)
+		return models.Debt{}, errs.ParsingField("due_date", err)
 	}
 
 	amount, err := strconv.ParseFloat(debtReq.Amount, 64)
 	if err != nil {
-		return models.Debt{}, errs.ErrParsingField("amount", err)
+		return models.Debt{}, errs.ParsingField("amount", err)
 	}
 
 	var categoryID *uuid.UUID
@@ -37,17 +37,17 @@ func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	if category != nil {
 		categoryID, err = repository.GetCategoryIDByName(category)
 		if errors.Is(err, errs.ErrNoRows) {
-			return models.Debt{}, errs.ErrNotFound("category", *category)
+			return models.Debt{}, errs.NotFound("category", *category)
 		}
 
 	}
 	if err != nil {
-		return models.Debt{}, errs.ErrUnknownWithContext("buscar categoria", err)
+		return models.Debt{}, errs.UnknownWithContext("buscar categoria", err)
 	}
 
 	invoiceID, err := utils.ToUUIDPointer(debtReq.InvoiceID)
 	if err != nil {
-		return models.Debt{}, errs.ErrParsingField("invoice_id", err)
+		return models.Debt{}, errs.ParsingField("invoice_id", err)
 	}
 
 	return models.Debt{
@@ -75,7 +75,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return repository.UpdateDebt(debt)
 }
 
-func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dto.DebtResponse, int, error) {
+func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, int, error) {
 
 	validColumns := map[string]bool{
 		"id":            true,
@@ -90,11 +90,11 @@ func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dt
 		"updated_at":    true,
 	}
 
-	if err := pagination.ValidateOrderBy("purchase_date", validColumns); err != nil {
+	if err := pgn.ValidateOrderBy("purchase_date", validColumns); err != nil {
 		return nil, 0, err
 	}
 
-	debts, err := repository.ListDebts(filters, pagination)
+	debts, err := repository.ListDebts(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}

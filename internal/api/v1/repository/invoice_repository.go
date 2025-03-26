@@ -78,7 +78,7 @@ func UpdateInvoice(invoice models.Invoice) (models.Invoice, error) {
 	return updatedData, nil
 }
 
-func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination) ([]dto.InvoiceResponse, error) {
+func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
 	query := `
         SELECT 
             i.id, 
@@ -98,34 +98,34 @@ func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination)
 	var args []any
 	argIndex := 1
 
-	if filters.Title != nil {
+	if flt.Title != nil {
 		conditions = append(conditions, fmt.Sprintf("i.title ILIKE $%d", argIndex))
-		args = append(args, "%"+*filters.Title+"%")
+		args = append(args, "%"+*flt.Title+"%")
 		argIndex++
 	}
-	if filters.StatusID != nil {
+	if flt.StatusID != nil {
 		conditions = append(conditions, fmt.Sprintf("i.status_id = $%d", argIndex))
-		args = append(args, *filters.StatusID)
+		args = append(args, *flt.StatusID)
 		argIndex++
 	}
-	if filters.MinAmount != nil {
+	if flt.MinAmount != nil {
 		conditions = append(conditions, fmt.Sprintf("i.amount >= $%d", argIndex))
-		args = append(args, *filters.MinAmount)
+		args = append(args, *flt.MinAmount)
 		argIndex++
 	}
-	if filters.MaxAmount != nil {
+	if flt.MaxAmount != nil {
 		conditions = append(conditions, fmt.Sprintf("i.amount <= $%d", argIndex))
-		args = append(args, *filters.MaxAmount)
+		args = append(args, *flt.MaxAmount)
 		argIndex++
 	}
-	if filters.StartDate != nil {
+	if flt.StartDate != nil {
 		conditions = append(conditions, fmt.Sprintf("i.issue_date >= $%d", argIndex))
-		args = append(args, *filters.StartDate)
+		args = append(args, *flt.StartDate)
 		argIndex++
 	}
-	if filters.EndDate != nil {
+	if flt.EndDate != nil {
 		conditions = append(conditions, fmt.Sprintf("i.issue_date <= $%d", argIndex))
-		args = append(args, *filters.EndDate)
+		args = append(args, *flt.EndDate)
 		argIndex++
 	}
 
@@ -136,9 +136,9 @@ func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination)
 		}
 	}
 
-	query += fmt.Sprintf(" ORDER BY i.%s DESC", pagination.OrderBy)
+	query += fmt.Sprintf(" ORDER BY i.%s DESC", pgn.OrderBy)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pagination.PageSize, pagination.Offset())
+	args = append(args, pgn.PageSize, pgn.Offset())
 
 	rows, err := DB.Query(query, args...)
 	if err != nil {

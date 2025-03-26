@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
@@ -78,7 +79,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return updatedData, nil
 }
 
-func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dto.DebtResponse, error) {
+func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, error) {
 	query := `
         SELECT
             d.id,
@@ -103,44 +104,47 @@ func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dt
 	var args []any
 	argIndex := 1
 
-	if filters.Title != nil {
-		conditions = append(conditions, fmt.Sprintf("d.title ILIKE $%d", argIndex))
-		args = append(args, "%"+*filters.Title+"%")
+	if pgn.Search != "" {
+		conditions = append(conditions, fmt.Sprintf(
+			"(d.title ILIKE $%d OR c.name ILIKE $%d OR i.title ILIKE $%d OR s.name ILIKE $%d)",
+			argIndex, argIndex+1, argIndex+2, argIndex+3,
+		))
+		args = append(args, "%"+pgn.Search+"%", "%"+pgn.Search+"%", "%"+pgn.Search+"%", "%"+pgn.Search+"%")
+		argIndex += 4
+	}
+	if flt.CategoryID != nil && len(*flt.CategoryID) > 0 {
+		conditions = append(conditions, fmt.Sprintf("d.category_id = ANY($%d)", argIndex))
+		args = append(args, pq.Array(*flt.CategoryID))
 		argIndex++
 	}
-	if filters.CategoryID != nil {
-		conditions = append(conditions, fmt.Sprintf("d.category_id = $%d", argIndex))
-		args = append(args, *filters.CategoryID)
+	if flt.StatusID != nil && len(*flt.StatusID) > 0 {
+		conditions = append(conditions, fmt.Sprintf("d.status_id = ANY($%d)", argIndex))
+		args = append(args, pq.Array(*flt.StatusID))
 		argIndex++
 	}
-	if filters.StatusID != nil {
-		conditions = append(conditions, fmt.Sprintf("d.status_id = $%d", argIndex))
-		args = append(args, *filters.StatusID)
+	if flt.InvoiceID != nil && len(*flt.InvoiceID) > 0 {
+		conditions = append(conditions, fmt.Sprintf("d.invoice_id = ANY($%d)", argIndex))
+		args = append(args, pq.Array(*flt.InvoiceID))
 		argIndex++
 	}
-	if filters.MinAmount != nil {
+	if flt.MinAmount != nil {
 		conditions = append(conditions, fmt.Sprintf("d.amount >= $%d", argIndex))
-		args = append(args, *filters.MinAmount)
+		args = append(args, *flt.MinAmount)
 		argIndex++
 	}
-	if filters.MaxAmount != nil {
+	if flt.MaxAmount != nil {
 		conditions = append(conditions, fmt.Sprintf("d.amount <= $%d", argIndex))
-		args = append(args, *filters.MaxAmount)
+		args = append(args, *flt.MaxAmount)
 		argIndex++
 	}
-	if filters.StartDate != nil {
+	if flt.StartDate != nil {
 		conditions = append(conditions, fmt.Sprintf("d.purchase_date >= $%d", argIndex))
-		args = append(args, *filters.StartDate)
+		args = append(args, *flt.StartDate)
 		argIndex++
 	}
-	if filters.EndDate != nil {
+	if flt.EndDate != nil {
 		conditions = append(conditions, fmt.Sprintf("d.purchase_date <= $%d", argIndex))
-		args = append(args, *filters.EndDate)
-		argIndex++
-	}
-	if filters.InvoiceID != nil {
-		conditions = append(conditions, fmt.Sprintf("d.invoice_id = $%d", argIndex))
-		args = append(args, *filters.InvoiceID)
+		args = append(args, *flt.EndDate)
 		argIndex++
 	}
 
@@ -151,9 +155,9 @@ func ListDebts(filters dto.DebtFilters, pagination *pagination.Pagination) ([]dt
 		}
 	}
 
-	query += fmt.Sprintf(" ORDER BY d.%s DESC", pagination.OrderBy)
+	query += fmt.Sprintf(" ORDER BY d.%s DESC", pgn.OrderBy)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pagination.PageSize, pagination.Offset())
+	args = append(args, pgn.PageSize, pgn.Offset())
 
 	rows, err := DB.Query(query, args...)
 	if err != nil {

@@ -114,9 +114,8 @@ func GetDebtByIDHandler(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
 // @Router /debts [get]
 func ListDebtsHandler(c *gin.Context) {
-	var filters dto.DebtFilters
-
-	if err := c.ShouldBindQuery(&filters); err != nil {
+	var flt dto.DebtFilters
+	if err := c.ShouldBindQuery(&flt); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Parâmetros inválidos",
 			Details: err.Error(),
@@ -124,8 +123,15 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
-	pagination, err := pagination.NewPagination(c)
+	if errDetail := utils.ValidateUUIDArrayFields(&flt); errDetail != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "Parâmetros inválidos",
+			Details: *errDetail,
+		})
+		return
+	}
 
+	pgn, err := pagination.NewPagination(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Parâmetros inválidos",
@@ -134,7 +140,8 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
-	debts, total, err := services.ListDebts(filters, pagination)
+	debts, total, err := services.ListDebts(flt, pgn)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Message: "Erro ao buscar os débitos",
@@ -143,7 +150,7 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
-	pagination.SetPaginationHeaders(c, total)
+	pgn.SetPaginationHeaders(c, total)
 
 	c.JSON(http.StatusOK, debts)
 }

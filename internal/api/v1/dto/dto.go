@@ -44,17 +44,14 @@ type DebtResponse struct {
 }
 
 type DebtFilters struct {
-	Title      *string    `form:"title"`
-	CategoryID *uuid.UUID `form:"category_id"`
-	StatusID   *uuid.UUID `form:"status_id"`
-	MinAmount  *float64   `form:"min_amount"`
-	MaxAmount  *float64   `form:"max_amount"`
-	StartDate  *string    `form:"start_date"`
-	EndDate    *string    `form:"end_date"`
-	InvoiceID  *uuid.UUID `form:"invoice_id"`
-	Page       *int       `form:"page"`
-	PageSize   *int       `form:"page_size"`
-	OrderBy    *string    `form:"order_by"`
+	// REDO: o ShouldBindQuery n esta reconhecendo o *[]uuid.UUID
+	CategoryID *[]string `form:"category_id"`
+	StatusID   *[]string `form:"status_id"`
+	InvoiceID  *[]string `form:"invoice_id"`
+	MinAmount  *float64  `form:"min_amount"`
+	MaxAmount  *float64  `form:"max_amount"`
+	StartDate  *string   `form:"start_date"`
+	EndDate    *string   `form:"end_date"`
 }
 
 // Invoices

@@ -112,9 +112,9 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorResponse "Erro interno"
 // @Router /invoices [get]
 func ListInvoicesHandler(c *gin.Context) {
-	var filters dto.InvoiceFilters
+	var flt dto.InvoiceFilters
 
-	if err := c.ShouldBindQuery(&filters); err != nil {
+	if err := c.ShouldBindQuery(&flt); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "Parâmetros inválidos",
 			Details: err.Error(),
@@ -122,7 +122,7 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	pagination, err := pagination.NewPagination(c)
+	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
@@ -132,7 +132,7 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	invoices, total, err := services.ListInvoices(filters, pagination)
+	invoices, total, err := services.ListInvoices(flt, pgn)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Message: "Erro ao buscar faturas",
@@ -141,7 +141,7 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	pagination.SetPaginationHeaders(c, total)
+	pgn.SetPaginationHeaders(c, total)
 
 	c.JSON(http.StatusOK, invoices)
 }

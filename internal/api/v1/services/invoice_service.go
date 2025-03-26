@@ -15,17 +15,17 @@ import (
 func ParseInvoice(invoiceReq dto.InvoiceRequest) (models.Invoice, error) {
 	issueDate, err := time.Parse("2006-01-02", invoiceReq.IssueDate)
 	if err != nil {
-		return models.Invoice{}, errs.ErrDateParsing("issue_date")
+		return models.Invoice{}, errs.DateParsing("issue_date")
 	}
 
 	dueDate, err := time.Parse("2006-01-02", invoiceReq.DueDate)
 	if err != nil {
-		return models.Invoice{}, errs.ErrDateParsing("due_date")
+		return models.Invoice{}, errs.DateParsing("due_date")
 	}
 
 	amount, err := strconv.ParseFloat(invoiceReq.Amount, 64)
 	if err != nil {
-		return models.Invoice{}, errs.ErrParsingField("amount", err)
+		return models.Invoice{}, errs.ParsingField("amount", err)
 	}
 
 	return models.Invoice{
@@ -45,7 +45,7 @@ func UpdateInvoice(Invoice models.Invoice) (models.Invoice, error) {
 	return repository.UpdateInvoice(Invoice)
 }
 
-func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination) ([]dto.InvoiceResponse, int, error) {
+func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, int, error) {
 
 	validColumns := map[string]bool{
 		"id":         true,
@@ -58,15 +58,15 @@ func ListInvoices(filters dto.InvoiceFilters, pagination *pagination.Pagination)
 		"updated_at": true,
 	}
 
-	if err := pagination.ValidateOrderBy("issue_date", validColumns); err != nil {
+	if err := pgn.ValidateOrderBy("issue_date", validColumns); err != nil {
 		return nil, 0, err
 	}
 
-	invoices, err := repository.ListInvoices(filters, pagination)
+	invoices, err := repository.ListInvoices(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	total, err := repository.CountInvoices()
 	if err != nil {
 		return nil, 0, err
