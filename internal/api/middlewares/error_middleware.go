@@ -11,12 +11,12 @@ import (
 func ErrorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
-		formatError(c)
+		handleError(c)
 
 	}
 }
 
-func formatError(c *gin.Context) {
+func handleError(c *gin.Context) {
 	if len(c.Errors) > 0 {
 		for _, err := range c.Errors {
 			log.Printf("[ERROR] %s", err.Err)

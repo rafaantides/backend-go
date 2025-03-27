@@ -19,7 +19,7 @@ func UUIDMiddleware() gin.HandlerFunc {
 					if err != nil {
 						// TODO: rever aqui
 						c.Error(errs.NewAPIError(http.StatusBadRequest, errs.AAAInvalidUUID(key, err)))
-						formatError(c)
+						handleError(c)
 						c.Abort()
 						return
 					}
@@ -31,7 +31,7 @@ func UUIDMiddleware() gin.HandlerFunc {
 		var body map[string]interface{}
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-			formatError(c)
+			handleError(c)
 			c.Abort()
 			return
 
@@ -39,7 +39,7 @@ func UUIDMiddleware() gin.HandlerFunc {
 
 		if err := validateUUIDsRecursive(body); err != nil {
 			c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-			formatError(c)
+			handleError(c)
 			c.Abort()
 			return
 		}
