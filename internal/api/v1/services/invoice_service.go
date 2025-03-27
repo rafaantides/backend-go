@@ -51,7 +51,7 @@ func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.Inv
 		return nil, 0, err
 	}
 
-	total, err := repository.CountInvoices()
+	total, err := repository.CountInvoices(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}

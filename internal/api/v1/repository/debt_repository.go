@@ -7,6 +7,7 @@ import (
 	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -83,23 +84,67 @@ func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtRespo
 	query := `
         SELECT
             d.id,
-			d.title,
-			d.amount,
-			d.purchase_date,
-			d.due_date,
-			d.category_id,
-			d.status_id,
+            d.title,
+            d.amount,
+            d.purchase_date,
+            d.due_date,
+            d.category_id,
+            d.status_id,
             d.created_at,
-			d.updated_at,
-			c.name AS category,
-			i.title AS invoice_title,
-			s.name AS status
+            d.updated_at,
+            c.name AS category,
+            i.title AS invoice_title,
+            s.name AS status
         FROM debts d
         LEFT JOIN categories c ON d.category_id = c.id
-		LEFT JOIN payment_status s ON d.status_id = s.id
+        LEFT JOIN payment_status s ON d.status_id = s.id
         LEFT JOIN invoices i ON d.invoice_id = i.id
     `
+	filterQuery, args := buildDebtFilters(flt, pgn)
+	query += filterQuery
+	query += fmt.Sprintf(" ORDER BY d.%s DESC", pgn.OrderBy)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)+1, len(args)+2)
+	args = append(args, pgn.PageSize, pgn.Offset())
 
+	rows, err := DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDebtResponse(rows)
+}
+
+func CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
+	query := "SELECT COUNT(*) FROM debts d LEFT JOIN categories c ON d.category_id = c.id LEFT JOIN payment_status s ON d.status_id = s.id LEFT JOIN invoices i ON d.invoice_id = i.id"
+	filterQuery, args := buildDebtFilters(flt, pgn)
+	query += filterQuery
+
+	var total int
+	err := DB.QueryRow(query, args...).Scan(&total)
+	return total, err
+}
+
+func newDebtResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
+	defer rows.Close()
+	debts := make([]dto.DebtResponse, 0)
+	for rows.Next() {
+		var debt dto.DebtResponse
+
+		err := rows.Scan(
+			&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.DueDate,
+			&debt.CategoryID, &debt.StatusID, &debt.CreatedAt, &debt.UpdatedAt,
+			&debt.Category, &debt.InvoiceTitle, &debt.Status,
+		)
+		if err != nil {
+			return nil, err
+		}
+		debts = append(debts, debt)
+	}
+
+	return debts, nil
+}
+
+func buildDebtFilters(flt dto.DebtFilters, pgn *pagination.Pagination) (string, []any) {
 	var conditions []string
 	var args []any
 	argIndex := 1
@@ -112,17 +157,17 @@ func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtRespo
 		args = append(args, "%"+pgn.Search+"%", "%"+pgn.Search+"%", "%"+pgn.Search+"%", "%"+pgn.Search+"%")
 		argIndex += 4
 	}
-	if flt.CategoryID != nil && len(*flt.CategoryID) > 0 {
+	if flt.CategoryID != nil {
 		conditions = append(conditions, fmt.Sprintf("d.category_id = ANY($%d)", argIndex))
 		args = append(args, pq.Array(*flt.CategoryID))
 		argIndex++
 	}
-	if flt.StatusID != nil && len(*flt.StatusID) > 0 {
+	if flt.StatusID != nil {
 		conditions = append(conditions, fmt.Sprintf("d.status_id = ANY($%d)", argIndex))
 		args = append(args, pq.Array(*flt.StatusID))
 		argIndex++
 	}
-	if flt.InvoiceID != nil && len(*flt.InvoiceID) > 0 {
+	if flt.InvoiceID != nil {
 		conditions = append(conditions, fmt.Sprintf("d.invoice_id = ANY($%d)", argIndex))
 		args = append(args, pq.Array(*flt.InvoiceID))
 		argIndex++
@@ -148,47 +193,10 @@ func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtRespo
 		argIndex++
 	}
 
+	filterQuery := ""
 	if len(conditions) > 0 {
-		query += " WHERE " + conditions[0]
-		for i := 1; i < len(conditions); i++ {
-			query += " AND " + conditions[i]
-		}
+		filterQuery = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query += fmt.Sprintf(" ORDER BY d.%s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pgn.PageSize, pgn.Offset())
-
-	rows, err := DB.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return newDebtResponse(rows)
-}
-
-func CountDebts() (int, error) {
-	var total int
-	err := DB.QueryRow("SELECT COUNT(*) FROM debts").Scan(&total)
-	return total, err
-}
-
-func newDebtResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
-	defer rows.Close()
-	debts := make([]dto.DebtResponse, 0)
-	for rows.Next() {
-		var debt dto.DebtResponse
-
-		err := rows.Scan(
-			&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.DueDate,
-			&debt.CategoryID, &debt.StatusID, &debt.CreatedAt, &debt.UpdatedAt,
-			&debt.Category, &debt.InvoiceTitle, &debt.Status,
-		)
-		if err != nil {
-			return nil, err
-		}
-		debts = append(debts, debt)
-	}
-
-	return debts, nil
+	return filterQuery, args
 }

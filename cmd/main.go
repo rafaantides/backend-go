@@ -27,6 +27,7 @@ func main() {
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(v1.Group("/debts"))
 	routes.RegisterInvoiceRoutes(v1.Group("/invoices"))
+	routes.RegisterCategoryRoutes(v1.Group("/categories"))
 
 	r.Run(":8080")
 }

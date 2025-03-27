@@ -85,3 +85,18 @@ type InvoiceFilters struct {
 	StartDate *string   `form:"start_date"`
 	EndDate   *string   `form:"end_date"`
 }
+
+// Category
+type CategoryRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type CategoryResponse struct {
+	// ID único da categoria
+	ID uuid.UUID `json:"id"`
+	// Nome da categoria
+	Name string `json:"name"`
+	// Descrião da categoria
+	Description float64 `json:"description"`
+}

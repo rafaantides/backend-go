@@ -7,6 +7,7 @@ import (
 	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -95,6 +96,53 @@ func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.Inv
 		LEFT JOIN payment_status s ON i.status_id = s.id
     `
 
+	filterQuery, args := buildInvoiceFilters(flt, pgn)
+	query += filterQuery
+
+	argIndex := len(args) + 1
+	query += fmt.Sprintf(" ORDER BY i.%s DESC", pgn.OrderBy)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
+	args = append(args, pgn.PageSize, pgn.Offset())
+
+	rows, err := DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return newInvoiceResponse(rows)
+}
+
+func CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
+	query := "SELECT COUNT(*) FROM invoices i LEFT JOIN payment_status s ON i.status_id = s.id"
+	filterQuery, args := buildInvoiceFilters(flt, pgn)
+	query += filterQuery
+
+	var total int
+	err := DB.QueryRow(query, args...).Scan(&total)
+	return total, err
+}
+
+// TODO: mudar para invoices e criar uma para invoice
+func newInvoiceResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
+	defer rows.Close()
+	invoices := make([]dto.InvoiceResponse, 0)
+	for rows.Next() {
+		var invoice dto.InvoiceResponse
+
+		err := rows.Scan(
+			&invoice.ID, &invoice.Title, &invoice.Amount, &invoice.IssueDate, &invoice.DueDate,
+			&invoice.StatusID, &invoice.CreatedAt, &invoice.UpdatedAt, &invoice.Status,
+		)
+		if err != nil {
+			return nil, err
+		}
+		invoices = append(invoices, invoice)
+	}
+
+	return invoices, nil
+}
+
+func buildInvoiceFilters(flt dto.InvoiceFilters, pgn *pagination.Pagination) (string, []any) {
 	var conditions []string
 	var args []any
 	argIndex := 1
@@ -133,46 +181,10 @@ func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.Inv
 		argIndex++
 	}
 
+	filterQuery := ""
 	if len(conditions) > 0 {
-		query += " WHERE " + conditions[0]
-		for i := 1; i < len(conditions); i++ {
-			query += " AND " + conditions[i]
-		}
+		filterQuery = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query += fmt.Sprintf(" ORDER BY i.%s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pgn.PageSize, pgn.Offset())
-
-	rows, err := DB.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return newInvoiceResponse(rows)
-}
-
-func CountInvoices() (int, error) {
-	var total int
-	err := DB.QueryRow("SELECT COUNT(*) FROM invoices").Scan(&total)
-	return total, err
-}
-
-func newInvoiceResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
-	defer rows.Close()
-	invoices := make([]dto.InvoiceResponse, 0)
-	for rows.Next() {
-		var invoice dto.InvoiceResponse
-
-		err := rows.Scan(
-			&invoice.ID, &invoice.Title, &invoice.Amount, &invoice.IssueDate, &invoice.DueDate,
-			&invoice.StatusID, &invoice.CreatedAt, &invoice.UpdatedAt, &invoice.Status,
-		)
-		if err != nil {
-			return nil, err
-		}
-		invoices = append(invoices, invoice)
-	}
-
-	return invoices, nil
+	return filterQuery, args
 }

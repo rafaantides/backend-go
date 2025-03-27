@@ -81,7 +81,7 @@ func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtRespo
 		return nil, 0, err
 	}
 
-	total, err := repository.CountDebts()
+	total, err := repository.CountDebts(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}
