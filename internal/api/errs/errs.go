@@ -1,10 +1,10 @@
 package errs
 
 import (
+	"backend-go/pkg/utils"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type ErrorResponse struct {
@@ -37,15 +37,15 @@ var ErrorMessages = map[int]string{
 }
 
 var (
-	ErrBadRequest         = errors.New(strings.ToLower(BadRequest))
-	ErrUnauthorized       = errors.New(strings.ToLower(Unauthorized))
-	ErrForbidden          = errors.New(strings.ToLower(Forbidden))
-	ErrNotFound           = errors.New(strings.ToLower(NotFound))
-	ErrConflict           = errors.New(strings.ToLower(Conflict))
-	ErrUnprocessable      = errors.New(strings.ToLower(UnprocessableEntity))
-	ErrTooManyRequests    = errors.New(strings.ToLower(TooManyRequests))
-	ErrInternalServer     = errors.New(strings.ToLower(InternalServerError))
-	ErrServiceUnavailable = errors.New(strings.ToLower(ServiceUnavailable))
+	ErrBadRequest         = errors.New(utils.SanitizeString(BadRequest))
+	ErrUnauthorized       = errors.New(utils.SanitizeString(Unauthorized))
+	ErrForbidden          = errors.New(utils.SanitizeString(Forbidden))
+	ErrNotFound           = errors.New(utils.SanitizeString(NotFound))
+	ErrConflict           = errors.New(utils.SanitizeString(Conflict))
+	ErrUnprocessable      = errors.New(utils.SanitizeString(UnprocessableEntity))
+	ErrTooManyRequests    = errors.New(utils.SanitizeString(TooManyRequests))
+	ErrInternalServer     = errors.New(utils.SanitizeString(InternalServerError))
+	ErrServiceUnavailable = errors.New(utils.SanitizeString(ServiceUnavailable))
 )
 
 // APIError representa um erro contendo um status HTTP e uma mensagem
@@ -67,11 +67,11 @@ func NewAPIError(statusCode int, err error) *APIError {
 	}
 }
 
-func AAAInvalidUUID(field string, err error) error {
+func InvalidParam(field string, err error) error {
 	return fmt.Errorf("%s: %w", field, err)
 }
 
-func AAANotFound(entity, key string) error {
+func ResorceNotFound(entity, key string) error {
 	return fmt.Errorf("%s não encontrado para %s", entity, key)
 }
 
@@ -83,11 +83,6 @@ func DateParsing(field string) error {
 	return fmt.Errorf("erro ao processar o campo %s: use o formato YYYY-MM-DD", field)
 }
 
-func InvalidOrderBy(field string) error {
-	return fmt.Errorf("'%s' é um valor inválido para ordenação", field)
-}
-
 func UnknownWithContext(context string, err error) error {
 	return fmt.Errorf("erro desconhecido em %s: %w", context, err)
 }
-

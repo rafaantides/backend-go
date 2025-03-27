@@ -21,7 +21,7 @@ func main() {
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
 
-	// v1.Use(middlewares.UUIDMiddleware())
+	v1.Use(middlewares.UUIDMiddleware())
 	v1.Use(middlewares.ErrorMiddleware())
 
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))

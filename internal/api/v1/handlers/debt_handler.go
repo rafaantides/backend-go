@@ -110,6 +110,24 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
+	validColumns := map[string]bool{
+		"id":            true,
+		"invoice_id":    true,
+		"title":         true,
+		"category_id":   true,
+		"amount":        true,
+		"purchase_date": true,
+		"due_date":      true,
+		"status_id":     true,
+		"created_at":    true,
+		"updated_at":    true,
+	}
+
+	if err := pgn.ValidateOrderBy("purchase_date", validColumns); err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
+
 	debts, total, err := services.ListDebts(flt, pgn)
 
 	if err != nil {

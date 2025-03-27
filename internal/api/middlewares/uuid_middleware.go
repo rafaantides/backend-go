@@ -17,8 +17,7 @@ func UUIDMiddleware() gin.HandlerFunc {
 				for _, value := range values {
 					_, err := uuid.Parse(value)
 					if err != nil {
-						// TODO: rever aqui
-						c.Error(errs.NewAPIError(http.StatusBadRequest, errs.AAAInvalidUUID(key, err)))
+						c.Error(errs.NewAPIError(http.StatusBadRequest, errs.InvalidParam(key, err)))
 						handleError(c)
 						c.Abort()
 						return
@@ -27,17 +26,7 @@ func UUIDMiddleware() gin.HandlerFunc {
 			}
 		}
 
-		// Valida parâmetros do corpo da requisição (JSON).
-		var body map[string]interface{}
-		if err := c.ShouldBindJSON(&body); err != nil {
-			c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-			handleError(c)
-			c.Abort()
-			return
-
-		}
-
-		if err := validateUUIDsRecursive(body); err != nil {
+		if err := validateBodyUUIDs(c); err != nil {
 			c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 			handleError(c)
 			c.Abort()
@@ -49,6 +38,22 @@ func UUIDMiddleware() gin.HandlerFunc {
 
 }
 
+// Lê e valida os UUIDs no corpo da requisição, se houver conteúdo
+func validateBodyUUIDs(c *gin.Context) error {
+	// Verifica se há corpo na requisição
+	if c.Request.ContentLength == 0 {
+		return nil
+	}
+
+	// Faz o bind do JSON para um mapa
+	var body map[string]interface{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		return err
+	}
+
+	return validateUUIDsRecursive(body)
+}
+
 func validateUUIDsRecursive(data map[string]interface{}) error {
 	for key, value := range data {
 		switch v := value.(type) {
@@ -56,7 +61,7 @@ func validateUUIDsRecursive(data map[string]interface{}) error {
 			if strings.Contains(key, "id") {
 				_, err := uuid.Parse(v)
 				if err != nil {
-					return errs.AAAInvalidUUID(key, err)
+					return errs.InvalidParam(key, err)
 				}
 			}
 		case []any:
@@ -64,7 +69,7 @@ func validateUUIDsRecursive(data map[string]interface{}) error {
 				if strItem, ok := item.(string); ok {
 					_, err := uuid.Parse(strItem)
 					if err != nil {
-						return errs.AAAInvalidUUID(key, err)
+						return errs.InvalidParam(key, err)
 					}
 				}
 			}

@@ -1,7 +1,7 @@
 package pagination
 
 import (
-	"backend-go/internal/api/errs"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -23,16 +23,12 @@ type Pagination struct {
 func NewPagination(c *gin.Context) (*Pagination, error) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", DefaultPage))
 	if err != nil || page < 1 {
-		// TODO: voltar e rever isso daqui
-		return nil, errs.ErrBadRequest
-		// return nil, errs.ErrInvalidPage
+		return nil, fmt.Errorf("%s: %s", "page", "valor invalido")
 	}
 
 	pageSize, err := strconv.Atoi(c.DefaultQuery("page_size", DefaultPageSize))
 	if err != nil || pageSize < 1 || pageSize > MaxPageSize {
-		// TODO: voltar e rever isso daqui
-		// return nil, errs.ErrInvalidPageSize
-		return nil, errs.ErrBadRequest
+		return nil, fmt.Errorf("%s: %s", "page_size", "valor invalido")
 	}
 
 	orderBy := c.Query("order_by")
@@ -56,7 +52,7 @@ func (p *Pagination) ValidateOrderBy(defaultOrder string, validColumns map[strin
 		return nil
 	}
 	if p.OrderBy != "" && !validColumns[p.OrderBy] {
-		return errs.InvalidOrderBy(p.OrderBy)
+		return fmt.Errorf("%s: %s", "order_by", "valor invalido")
 	}
 	return nil
 }

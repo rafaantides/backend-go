@@ -110,6 +110,22 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
+	validColumns := map[string]bool{
+		"id":         true,
+		"title":      true,
+		"amount":     true,
+		"issue_date": true,
+		"due_date":   true,
+		"status_id":  true,
+		"created_at": true,
+		"updated_at": true,
+	}
+
+	if err := pgn.ValidateOrderBy("issue_date", validColumns); err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
+
 	invoices, total, err := services.ListInvoices(flt, pgn)
 
 	if err != nil {

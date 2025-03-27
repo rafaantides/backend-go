@@ -46,22 +46,6 @@ func UpdateInvoice(Invoice models.Invoice) (models.Invoice, error) {
 }
 
 func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, int, error) {
-
-	validColumns := map[string]bool{
-		"id":         true,
-		"title":      true,
-		"amount":     true,
-		"issue_date": true,
-		"due_date":   true,
-		"status_id":  true,
-		"created_at": true,
-		"updated_at": true,
-	}
-
-	if err := pgn.ValidateOrderBy("issue_date", validColumns); err != nil {
-		return nil, 0, err
-	}
-
 	invoices, err := repository.ListInvoices(flt, pgn)
 	if err != nil {
 		return nil, 0, err

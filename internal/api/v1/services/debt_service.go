@@ -37,7 +37,7 @@ func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	if category != nil {
 		categoryID, err = repository.GetCategoryIDByName(category)
 		if errors.Is(err, errs.ErrNotFound) {
-			return models.Debt{}, errs.AAANotFound("category", *category)
+			return models.Debt{}, errs.ResorceNotFound("category", *category)
 		}
 
 	}
@@ -76,24 +76,6 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 }
 
 func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, int, error) {
-
-	validColumns := map[string]bool{
-		"id":            true,
-		"invoice_id":    true,
-		"title":         true,
-		"category_id":   true,
-		"amount":        true,
-		"purchase_date": true,
-		"due_date":      true,
-		"status_id":     true,
-		"created_at":    true,
-		"updated_at":    true,
-	}
-
-	if err := pgn.ValidateOrderBy("purchase_date", validColumns); err != nil {
-		return nil, 0, err
-	}
-
 	debts, err := repository.ListDebts(flt, pgn)
 	if err != nil {
 		return nil, 0, err
