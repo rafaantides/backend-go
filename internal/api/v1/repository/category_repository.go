@@ -17,7 +17,7 @@ func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 	err := row.Scan(&model.ID, &model.Name, &model.Description, &model.CreatedAt, &model.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errs.ErrNoRows
+			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func GetCategoryIDByName(categoryName *string) (*uuid.UUID, error) {
 	err := DB.QueryRow(query, categoryName).Scan(&categoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errs.ErrNoRows
+			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}

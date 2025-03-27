@@ -26,28 +26,19 @@ func CreateDebtHandler(c *gin.Context) {
 	var debtReq dto.DebtRequest
 
 	if err := c.ShouldBindJSON(&debtReq); err != nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "Requisição inválida",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	debt, err := services.ParseDebt(debtReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "Dados inválidos",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	createdDebt, err := services.CreateDebt(debt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
-			Message: "Erro ao salvar a débito",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
@@ -68,25 +59,17 @@ func CreateDebtHandler(c *gin.Context) {
 func GetDebtByIDHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "ID do débito inválido",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	debt, err := services.GetDebtByID(*debtID)
 	if err != nil {
-		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, errs.ErrorResponse{
-				Message: "Débito não encontrado",
-			})
+		if errors.Is(err, errs.ErrNotFound) {
+			c.Error(errs.NewAPIError(http.StatusNotFound, err))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
-			Message: "Erro ao buscar o débito",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
@@ -116,30 +99,21 @@ func GetDebtByIDHandler(c *gin.Context) {
 func ListDebtsHandler(c *gin.Context) {
 	var flt dto.DebtFilters
 	if err := c.ShouldBindQuery(&flt); err != nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "Parâmetros inválidos",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "Parâmetros inválidos",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	debts, total, err := services.ListDebts(flt, pgn)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
-			Message: "Erro ao buscar os débitos",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
@@ -163,52 +137,35 @@ func ListDebtsHandler(c *gin.Context) {
 func UpdateDebtHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "ID do débito inválido",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	_, err = services.GetDebtByID(*debtID)
 	if err != nil {
-		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, errs.ErrorResponse{
-				Message: "Débito não encontrado",
-			})
+		if errors.Is(err, errs.ErrNotFound) {
+			c.Error(errs.NewAPIError(http.StatusNotFound, err))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
-			Message: "Erro ao buscar o débito",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
 	var debtReq dto.DebtRequest
 	if err := c.ShouldBindJSON(&debtReq); err != nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "Requisição inválida",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	debt, err := services.ParseDebt(debtReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "Dados inválidos",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	updateDebt, err := services.UpdateDebt(debt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
-			Message: "Erro ao atualizar o débito",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
@@ -229,26 +186,18 @@ func UpdateDebtHandler(c *gin.Context) {
 func DeleteDebtHandler(c *gin.Context) {
 	debtID, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || debtID == nil {
-		c.JSON(http.StatusBadRequest, errs.ErrorResponse{
-			Message: "ID do débito inválido",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
 	err = services.DeleteDebtByID(*debtID)
 	if err != nil {
-		if errors.Is(err, errs.ErrNoRows) {
-			c.JSON(http.StatusNotFound, errs.ErrorResponse{
-				Message: "Débito não encontrado",
-			})
+		if errors.Is(err, errs.ErrNotFound) {
+			c.Error(errs.NewAPIError(http.StatusNotFound, err))
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, errs.ErrorResponse{
-			Message: "Erro ao deletar o débito",
-			Details: err.Error(),
-		})
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 

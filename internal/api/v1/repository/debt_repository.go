@@ -21,7 +21,7 @@ func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
 	err := row.Scan(&data.ID, &data.Title, &data.CategoryID, &data.Amount, &data.PurchaseDate, &data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errs.ErrNoRows
+			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func DeleteDebtByID(id uuid.UUID) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return errs.ErrNoRows
+		return errs.ErrNotFound
 	}
 
 	return nil

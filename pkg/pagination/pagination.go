@@ -23,12 +23,16 @@ type Pagination struct {
 func NewPagination(c *gin.Context) (*Pagination, error) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", DefaultPage))
 	if err != nil || page < 1 {
-		return nil, errs.ErrInvalidPage
+		// TODO: voltar e rever isso daqui
+		return nil, errs.ErrBadRequest
+		// return nil, errs.ErrInvalidPage
 	}
 
 	pageSize, err := strconv.Atoi(c.DefaultQuery("page_size", DefaultPageSize))
 	if err != nil || pageSize < 1 || pageSize > MaxPageSize {
-		return nil, errs.ErrInvalidPageSize
+		// TODO: voltar e rever isso daqui
+		// return nil, errs.ErrInvalidPageSize
+		return nil, errs.ErrBadRequest
 	}
 
 	orderBy := c.Query("order_by")

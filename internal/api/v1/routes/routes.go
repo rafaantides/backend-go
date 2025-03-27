@@ -35,9 +35,9 @@ func RegisterDebtRoutes(router *gin.RouterGroup) {
 }
 
 func RegisterInvoiceRoutes(router *gin.RouterGroup) {
-	router.POST("/", handlers.CreateInvoiceHandler)
-	router.GET("/", handlers.ListInvoicesHandler)
-	router.GET("/:id", handlers.GetInvoiceByIDHandler)
-	router.PUT("/:id", handlers.UpdateInvoiceHandler)
-	router.DELETE("/:id", handlers.DeleteInvoiceHandler)
+	// router.POST("/", handlers.CreateInvoiceHandler)
+	// router.GET("/", handlers.ListInvoicesHandler)
+	// router.GET("/:id", handlers.GetInvoiceByIDHandler)
+	// router.PUT("/:id", handlers.UpdateInvoiceHandler)
+	// router.DELETE("/:id", handlers.DeleteInvoiceHandler)
 }

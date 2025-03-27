@@ -36,8 +36,8 @@ func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	category := categorizeTransaction(debtReq.Title)
 	if category != nil {
 		categoryID, err = repository.GetCategoryIDByName(category)
-		if errors.Is(err, errs.ErrNoRows) {
-			return models.Debt{}, errs.NotFound("category", *category)
+		if errors.Is(err, errs.ErrNotFound) {
+			return models.Debt{}, errs.AAANotFound("category", *category)
 		}
 
 	}

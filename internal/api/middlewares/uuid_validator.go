@@ -17,10 +17,10 @@ func UUIDValidatorMiddleware() gin.HandlerFunc {
 				for _, value := range values {
 					_, err := uuid.Parse(value)
 					if err != nil {
-						c.AbortWithStatusJSON(http.StatusBadRequest, errs.ErrorResponse{
-							Message: "Parâmetros inválidos",
-							Details: errs.InvalidUUID(key, err.Error()),
-						})
+						// TODO: rever aqui
+						c.Error(errs.NewAPIError(http.StatusBadRequest, errs.AAAInvalidUUID(key, err)))
+						formatError(c)
+						c.Abort()
 						return
 					}
 				}
@@ -30,18 +30,17 @@ func UUIDValidatorMiddleware() gin.HandlerFunc {
 		// Valida parâmetros do corpo da requisição (JSON).
 		var body map[string]interface{}
 		if err := c.ShouldBindJSON(&body); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, errs.ErrorResponse{
-				Message: "Erro ao processar o corpo da requisição",
-				Details: err.Error(),
-			})
+			c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+			formatError(c)
+			c.Abort()
 			return
+
 		}
 
 		if err := validateUUIDsRecursive(body); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, errs.ErrorResponse{
-				Message: "Parâmetros inválidos",
-				Details: err.Details,
-			})
+			c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+			formatError(c)
+			c.Abort()
 			return
 		}
 
@@ -50,17 +49,14 @@ func UUIDValidatorMiddleware() gin.HandlerFunc {
 
 }
 
-func validateUUIDsRecursive(data map[string]interface{}) *errs.ErrorResponse {
+func validateUUIDsRecursive(data map[string]interface{}) error {
 	for key, value := range data {
 		switch v := value.(type) {
 		case string:
 			if strings.Contains(key, "id") {
 				_, err := uuid.Parse(v)
 				if err != nil {
-					return &errs.ErrorResponse{
-						Message: "Parâmetros inválidos",
-						Details: errs.InvalidUUID(key, err.Error()),
-					}
+					return errs.AAAInvalidUUID(key, err)
 				}
 			}
 		case []any:
@@ -68,10 +64,7 @@ func validateUUIDsRecursive(data map[string]interface{}) *errs.ErrorResponse {
 				if strItem, ok := item.(string); ok {
 					_, err := uuid.Parse(strItem)
 					if err != nil {
-						return &errs.ErrorResponse{
-							Message: "Parâmetros inválidos",
-							Details: errs.InvalidUUID(key, err.Error()),
-						}
+						return errs.AAAInvalidUUID(key, err)
 					}
 				}
 			}

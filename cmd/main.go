@@ -22,6 +22,7 @@ func main() {
 	v1 := r.Group("/api/v1")
 
 	v1.Use(middlewares.UUIDValidatorMiddleware())
+	v1.Use(middlewares.ErrorHandlerMiddleware())
 
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(v1.Group("/debts"))
