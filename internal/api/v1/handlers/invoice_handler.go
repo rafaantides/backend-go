@@ -36,13 +36,13 @@ func CreateInvoiceHandler(c *gin.Context) {
 		return
 	}
 
-	createdInvoice, err := services.CreateInvoice(invoice)
+	newInvoice, err := services.CreateInvoice(invoice)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdInvoice)
+	c.JSON(http.StatusCreated, newInvoice)
 }
 
 // @Summary Buscar fatura por ID
@@ -66,9 +66,7 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 	invoice, err := services.GetInvoiceByID(*invoiceID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			c.JSON(http.StatusNotFound, errs.ErrorResponse{
-				Message: "Fatura não encontrada",
-			})
+			c.Error(errs.NewAPIError(http.StatusNotFound, err))
 			return
 		}
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))

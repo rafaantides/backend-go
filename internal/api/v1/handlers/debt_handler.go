@@ -36,13 +36,13 @@ func CreateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	createdDebt, err := services.CreateDebt(debt)
+	newDebt, err := services.CreateDebt(debt)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
-	c.JSON(http.StatusCreated, createdDebt)
+	c.JSON(http.StatusCreated, newDebt)
 }
 
 // @Summary Buscar débito por ID
