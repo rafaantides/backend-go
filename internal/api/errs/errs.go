@@ -86,3 +86,7 @@ func DateParsing(field string) error {
 func UnknownWithContext(context string, err error) error {
 	return fmt.Errorf("erro desconhecido em %s: %w", context, err)
 }
+
+func FailedToSave(table string, err error) error {
+	return fmt.Errorf("failed to save table %s: %w", table, err)
+}

@@ -14,19 +14,14 @@ import (
 )
 
 func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
-	var data models.Debt
-
-	query := `SELECT * FROM debts WHERE id = $1`
-	row := DB.QueryRow(query, id)
-
-	err := row.Scan(&data.ID, &data.Title, &data.CategoryID, &data.Amount, &data.PurchaseDate, &data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt)
+	row := DB.QueryRow(`SELECT * FROM debts WHERE id = $1`, id)
+	data, err := newDebtResponse(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
-
 	return &data, nil
 }
 
@@ -44,7 +39,6 @@ func DeleteDebtByID(id uuid.UUID) error {
 	if rowsAffected == 0 {
 		return errs.ErrNotFound
 	}
-
 	return nil
 }
 
@@ -53,13 +47,13 @@ func InsertDebt(debt models.Debt) (models.Debt, error) {
 			  VALUES ($1, $2, $3, $4, $5, $6)
 			  RETURNING *`
 
-	var newData models.Debt
-	err := DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID, debt.Amount, debt.PurchaseDate, debt.DueDate).
-		Scan(&newData.ID, &newData.InvoiceID, &newData.Title, &newData.CategoryID, &newData.Amount, &newData.PurchaseDate, &newData.DueDate, &newData.StatusID, &newData.CreatedAt, &newData.UpdatedAt)
+	row := DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID,
+		debt.Amount, debt.PurchaseDate, debt.DueDate)
+	data, err := newDebtResponse(row)
 	if err != nil {
 		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
 	}
-	return newData, nil
+	return data, nil
 }
 
 func UpdateDebt(debt models.Debt) (models.Debt, error) {
@@ -69,15 +63,12 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 		WHERE id = $6
 		RETURNING *
 	`
-	var updatedData models.Debt
-	err := DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.StatusID, debt.ID).
-		Scan(&updatedData.ID, &updatedData.Title, &updatedData.Amount, &updatedData.PurchaseDate, &updatedData.CategoryID, &updatedData.StatusID, &updatedData.CreatedAt, &updatedData.UpdatedAt)
-
+	row := DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.StatusID, debt.ID)
+	data, err := newDebtResponse(row)
 	if err != nil {
 		return models.Debt{}, fmt.Errorf("failed to update debt: %w", err)
 	}
-
-	return updatedData, nil
+	return data, nil
 }
 
 func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, error) {
@@ -111,7 +102,7 @@ func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtRespo
 		return nil, err
 	}
 
-	return newDebtResponse(rows)
+	return newDebtsResponse(rows)
 }
 
 func CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
@@ -124,7 +115,17 @@ func CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
 	return total, err
 }
 
-func newDebtResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
+func newDebtResponse(row *sql.Row) (models.Debt, error) {
+	var data models.Debt
+	if err := row.Scan(&data.ID, &data.Title, &data.CategoryID, &data.Amount,
+		&data.PurchaseDate, &data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt); err != nil {
+		return models.Debt{}, err
+	}
+
+	return data, nil
+}
+
+func newDebtsResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
 	defer rows.Close()
 	debts := make([]dto.DebtResponse, 0)
 	for rows.Next() {

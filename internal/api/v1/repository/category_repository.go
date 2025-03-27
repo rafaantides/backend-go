@@ -13,12 +13,9 @@ import (
 )
 
 func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
-	var model models.Category
+	row := DB.QueryRow(`SELECT * FROM categories WHERE id = $1`, id)
+	data, err := newCategoryResponse(row)
 
-	query := `SELECT * FROM categories WHERE id = $1`
-	row := DB.QueryRow(query, id)
-
-	err := row.Scan(&model.ID, &model.Name, &model.Description, &model.CreatedAt, &model.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.ErrNotFound
@@ -26,17 +23,15 @@ func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 		return nil, err
 	}
 
-	return &model, nil
+	return &data, nil
 }
 
 func GetCategoryIDByName(categoryName *string) (*uuid.UUID, error) {
 	if categoryName == nil {
 		return nil, nil
 	}
-	query := "SELECT id FROM categories WHERE name = $1"
-
 	var categoryID uuid.UUID
-	err := DB.QueryRow(query, categoryName).Scan(&categoryID)
+	err := DB.QueryRow(`SELECT id FROM categories WHERE name = $1`, categoryName).Scan(&categoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.ErrNotFound
@@ -65,37 +60,34 @@ func DeleteCategoryByID(id uuid.UUID) error {
 	return nil
 }
 
-func InsertCategory(category models.Category) (models.Category, error) {
+func InsertCategory(input models.Category) (models.Category, error) {
 	query := `INSERT INTO categories (name, description)
 			  VALUES ($1, $2)
-			  RETURNING *`
-	// TODO: mudar o nome para esse tipo
-	var newData models.Category
-	err := DB.QueryRow(query, category.Name, category.Description).
-		Scan(&newData.ID, &newData.Name, &newData.Description)
+			  RETURNING id, name, description`
+
+	row := DB.QueryRow(query, input.Name, input.Description)
+	data, err := newCategoryResponse(row)
 	if err != nil {
-		// TODO: criar um erro para isso
-		return models.Category{}, fmt.Errorf("failed to insert category: %w", err)
+		return models.Category{}, errs.FailedToSave("categories", err)
 	}
-	return newData, nil
+
+	return data, nil
 }
 
-func UpdateCategory(category models.Category) (models.Category, error) {
+func UpdateCategory(input models.Category) (models.Category, error) {
 	query := `
 		UPDATE categories
 		SET name = $1, description = $2
 		WHERE id = $3
 		RETURNING *
 	`
-	var updatedData models.Category
-	err := DB.QueryRow(query, category.Name, category.Description).
-		Scan(&updatedData.ID, &updatedData.Name, &updatedData.Description)
 
+	row := DB.QueryRow(query, input.Name, input.Description)
+	data, err := newCategoryResponse(row)
 	if err != nil {
-		return models.Category{}, fmt.Errorf("failed to update category: %w", err)
+		return models.Category{}, errs.FailedToSave("categories", err)
 	}
-
-	return updatedData, nil
+	return data, nil
 }
 
 func ListCategories(pgn *pagination.Pagination) ([]dto.CategoryResponse, error) {
@@ -133,16 +125,23 @@ func CountCategories(pgn *pagination.Pagination) (int, error) {
 	return total, err
 }
 
+func newCategoryResponse(row *sql.Row) (models.Category, error) {
+
+	var data models.Category
+	if err := row.Scan(&data.ID, &data.Name, &data.Description); err != nil {
+		return models.Category{}, err
+	}
+
+	return data, nil
+}
+
 func newCategoriesResponse(rows *sql.Rows) ([]dto.CategoryResponse, error) {
 	defer rows.Close()
 	categories := make([]dto.CategoryResponse, 0)
 	for rows.Next() {
 		var category dto.CategoryResponse
 
-		err := rows.Scan(
-			&category.ID, &category.Name, &category.Description,
-		)
-		if err != nil {
+		if err := rows.Scan(&category.ID, &category.Name, &category.Description); err != nil {
 			return nil, err
 		}
 		categories = append(categories, category)

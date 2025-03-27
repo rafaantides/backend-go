@@ -14,19 +14,14 @@ import (
 )
 
 func GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
-	var data models.Invoice
-
-	query := `SELECT * FROM invoices WHERE id = $1`
-	row := DB.QueryRow(query, id)
-
-	err := row.Scan(&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt)
+	row := DB.QueryRow(`SELECT * FROM invoices WHERE id = $1`, id)
+	data, err := newInvoiceResponse(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
-
 	return &data, nil
 }
 
@@ -44,7 +39,6 @@ func DeleteInvoiceByID(id uuid.UUID) error {
 	if rowsAffected == 0 {
 		return errs.ErrNotFound
 	}
-
 	return nil
 }
 
@@ -53,13 +47,12 @@ func InsertInvoice(invoice models.Invoice) (models.Invoice, error) {
 			  VALUES ($1, $2, $3, $4)
 			  RETURNING *`
 
-	var newData models.Invoice
-	err := DB.QueryRow(query, invoice.Title, invoice.Amount, invoice.IssueDate, invoice.DueDate).
-		Scan(&newData.ID, &newData.Title, &newData.Amount, &newData.IssueDate, &newData.DueDate, &newData.StatusID, &newData.CreatedAt, &newData.UpdatedAt)
+	row := DB.QueryRow(query, invoice.Title, invoice.Amount, invoice.IssueDate, invoice.DueDate)
+	data, err := newInvoiceResponse(row)
 	if err != nil {
 		return models.Invoice{}, fmt.Errorf("failed to insert invoice: %w", err)
 	}
-	return newData, nil
+	return data, nil
 }
 
 func UpdateInvoice(invoice models.Invoice) (models.Invoice, error) {
@@ -69,15 +62,12 @@ func UpdateInvoice(invoice models.Invoice) (models.Invoice, error) {
 		WHERE id = $6
 		RETURNING *
 	`
-	var updatedData models.Invoice
-	err := DB.QueryRow(query, invoice.Title, invoice.Amount, invoice.IssueDate, invoice.DueDate, invoice.StatusID, invoice.ID).
-		Scan(&updatedData.ID, &updatedData.Title, &updatedData.Amount, &updatedData.IssueDate, &updatedData.DueDate, &updatedData.StatusID, &updatedData.CreatedAt, &updatedData.UpdatedAt)
-
+	row := DB.QueryRow(query, invoice.Title, invoice.Amount, invoice.IssueDate, invoice.DueDate, invoice.StatusID, invoice.ID)
+	data, err := newInvoiceResponse(row)
 	if err != nil {
 		return models.Invoice{}, fmt.Errorf("failed to update debt: %w", err)
 	}
-
-	return updatedData, nil
+	return data, nil
 }
 
 func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
@@ -109,7 +99,7 @@ func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.Inv
 		return nil, err
 	}
 
-	return newInvoiceResponse(rows)
+	return newInvoicesResponse(rows)
 }
 
 func CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
@@ -122,8 +112,17 @@ func CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, err
 	return total, err
 }
 
-// TODO: mudar para invoices e criar uma para invoice
-func newInvoiceResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
+func newInvoiceResponse(row *sql.Row) (models.Invoice, error) {
+	var data models.Invoice
+	if err := row.Scan(&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate,
+		&data.StatusID, &data.CreatedAt, &data.UpdatedAt); err != nil {
+		return models.Invoice{}, err
+	}
+
+	return data, nil
+}
+
+func newInvoicesResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
 	defer rows.Close()
 	invoices := make([]dto.InvoiceResponse, 0)
 	for rows.Next() {
