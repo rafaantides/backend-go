@@ -21,8 +21,8 @@ func main() {
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
 
-	v1.Use(middlewares.UUIDValidatorMiddleware())
-	v1.Use(middlewares.ErrorHandlerMiddleware())
+	v1.Use(middlewares.UUIDMiddleware())
+	v1.Use(middlewares.ErrorMiddleware())
 
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(v1.Group("/debts"))

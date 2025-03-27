@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func UUIDValidatorMiddleware() gin.HandlerFunc {
+func UUIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Valida parâmetros de consulta da URL.
 		for key, values := range c.Request.URL.Query() {
