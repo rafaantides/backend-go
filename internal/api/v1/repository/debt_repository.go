@@ -13,6 +13,35 @@ import (
 	"github.com/lib/pq"
 )
 
+func newDebtResponse(row *sql.Row) (models.Debt, error) {
+	var data models.Debt
+	if err := row.Scan(
+		&data.ID, &data.Title, &data.CategoryID, &data.Amount, &data.PurchaseDate,
+		&data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt,
+	); err != nil {
+		return models.Debt{}, err
+	}
+
+	return data, nil
+}
+
+func newDebtsResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
+	defer rows.Close()
+	response := make([]dto.DebtResponse, 0)
+	for rows.Next() {
+		var data dto.DebtResponse
+		if err := rows.Scan(
+			&data.ID, &data.Title, &data.Amount, &data.PurchaseDate, &data.DueDate,
+			&data.CategoryID, &data.StatusID, &data.CreatedAt, &data.UpdatedAt,
+			&data.Category, &data.InvoiceTitle, &data.Status,
+		); err != nil {
+			return make([]dto.DebtResponse, 0), err
+		}
+		response = append(response, data)
+	}
+	return response, nil
+}
+
 func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
 	row := DB.QueryRow(`SELECT * FROM debts WHERE id = $1`, id)
 	data, err := newDebtResponse(row)
@@ -113,36 +142,6 @@ func CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
 	var total int
 	err := DB.QueryRow(query, args...).Scan(&total)
 	return total, err
-}
-
-func newDebtResponse(row *sql.Row) (models.Debt, error) {
-	var data models.Debt
-	if err := row.Scan(&data.ID, &data.Title, &data.CategoryID, &data.Amount,
-		&data.PurchaseDate, &data.DueDate, &data.StatusID, &data.CreatedAt, &data.UpdatedAt); err != nil {
-		return models.Debt{}, err
-	}
-
-	return data, nil
-}
-
-func newDebtsResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
-	defer rows.Close()
-	debts := make([]dto.DebtResponse, 0)
-	for rows.Next() {
-		var debt dto.DebtResponse
-
-		err := rows.Scan(
-			&debt.ID, &debt.Title, &debt.Amount, &debt.PurchaseDate, &debt.DueDate,
-			&debt.CategoryID, &debt.StatusID, &debt.CreatedAt, &debt.UpdatedAt,
-			&debt.Category, &debt.InvoiceTitle, &debt.Status,
-		)
-		if err != nil {
-			return nil, err
-		}
-		debts = append(debts, debt)
-	}
-
-	return debts, nil
 }
 
 func buildDebtFilters(flt dto.DebtFilters, pgn *pagination.Pagination) (string, []any) {

@@ -13,6 +13,33 @@ import (
 	"github.com/lib/pq"
 )
 
+func newInvoiceResponse(row *sql.Row) (models.Invoice, error) {
+	var data models.Invoice
+	if err := row.Scan(
+		&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate,
+		&data.StatusID, &data.CreatedAt, &data.UpdatedAt,
+	); err != nil {
+		return models.Invoice{}, err
+	}
+	return data, nil
+}
+
+func newInvoicesResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
+	defer rows.Close()
+	response := make([]dto.InvoiceResponse, 0)
+	for rows.Next() {
+		var data dto.InvoiceResponse
+		if err := rows.Scan(
+			&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate,
+			&data.StatusID, &data.CreatedAt, &data.UpdatedAt, &data.Status,
+		); err != nil {
+			return make([]dto.InvoiceResponse, 0), err
+		}
+		response = append(response, data)
+	}
+	return response, nil
+}
+
 func GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
 	row := DB.QueryRow(`SELECT * FROM invoices WHERE id = $1`, id)
 	data, err := newInvoiceResponse(row)
@@ -110,35 +137,6 @@ func CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, err
 	var total int
 	err := DB.QueryRow(query, args...).Scan(&total)
 	return total, err
-}
-
-func newInvoiceResponse(row *sql.Row) (models.Invoice, error) {
-	var data models.Invoice
-	if err := row.Scan(&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate,
-		&data.StatusID, &data.CreatedAt, &data.UpdatedAt); err != nil {
-		return models.Invoice{}, err
-	}
-
-	return data, nil
-}
-
-func newInvoicesResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
-	defer rows.Close()
-	invoices := make([]dto.InvoiceResponse, 0)
-	for rows.Next() {
-		var invoice dto.InvoiceResponse
-
-		err := rows.Scan(
-			&invoice.ID, &invoice.Title, &invoice.Amount, &invoice.IssueDate, &invoice.DueDate,
-			&invoice.StatusID, &invoice.CreatedAt, &invoice.UpdatedAt, &invoice.Status,
-		)
-		if err != nil {
-			return nil, err
-		}
-		invoices = append(invoices, invoice)
-	}
-
-	return invoices, nil
 }
 
 func buildInvoiceFilters(flt dto.InvoiceFilters, pgn *pagination.Pagination) (string, []any) {

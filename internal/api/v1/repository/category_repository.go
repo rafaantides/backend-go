@@ -12,6 +12,27 @@ import (
 	"github.com/google/uuid"
 )
 
+func newCategoryResponse(row *sql.Row) (models.Category, error) {
+	var data models.Category
+	if err := row.Scan(&data.ID, &data.Name, &data.Description); err != nil {
+		return models.Category{}, err
+	}
+	return data, nil
+}
+
+func newCategoriesResponse(rows *sql.Rows) ([]dto.CategoryResponse, error) {
+	defer rows.Close()
+	response := make([]dto.CategoryResponse, 0)
+	for rows.Next() {
+		var data dto.CategoryResponse
+		if err := rows.Scan(&data.ID, &data.Name, &data.Description); err != nil {
+			return make([]dto.CategoryResponse, 0), err
+		}
+		response = append(response, data)
+	}
+	return response, nil
+}
+
 func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 	row := DB.QueryRow(`SELECT * FROM categories WHERE id = $1`, id)
 	data, err := newCategoryResponse(row)
@@ -123,31 +144,6 @@ func CountCategories(pgn *pagination.Pagination) (int, error) {
 	var total int
 	err := DB.QueryRow(query, args...).Scan(&total)
 	return total, err
-}
-
-func newCategoryResponse(row *sql.Row) (models.Category, error) {
-
-	var data models.Category
-	if err := row.Scan(&data.ID, &data.Name, &data.Description); err != nil {
-		return models.Category{}, err
-	}
-
-	return data, nil
-}
-
-func newCategoriesResponse(rows *sql.Rows) ([]dto.CategoryResponse, error) {
-	defer rows.Close()
-	categories := make([]dto.CategoryResponse, 0)
-	for rows.Next() {
-		var category dto.CategoryResponse
-
-		if err := rows.Scan(&category.ID, &category.Name, &category.Description); err != nil {
-			return nil, err
-		}
-		categories = append(categories, category)
-	}
-
-	return categories, nil
 }
 
 func buildCategoryFilters(pgn *pagination.Pagination) (string, []any) {
