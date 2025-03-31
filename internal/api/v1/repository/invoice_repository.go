@@ -69,12 +69,12 @@ func DeleteInvoiceByID(id uuid.UUID) error {
 	return nil
 }
 
-func InsertInvoice(invoice models.Invoice) (models.Invoice, error) {
+func InsertInvoice(input models.Invoice) (models.Invoice, error) {
 	query := `INSERT INTO debts (title, amount, issue_date, due_date)
 			  VALUES ($1, $2, $3, $4)
 			  RETURNING *`
 
-	row := DB.QueryRow(query, invoice.Title, invoice.Amount, invoice.IssueDate, invoice.DueDate)
+	row := DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate)
 	data, err := newInvoiceResponse(row)
 	if err != nil {
 		return models.Invoice{}, fmt.Errorf("failed to insert invoice: %w", err)
@@ -82,14 +82,14 @@ func InsertInvoice(invoice models.Invoice) (models.Invoice, error) {
 	return data, nil
 }
 
-func UpdateInvoice(invoice models.Invoice) (models.Invoice, error) {
+func UpdateInvoice(input models.Invoice) (models.Invoice, error) {
 	query := `
 		UPDATE invoices
 		SET title = $1, amount = $2, issue_date = $3, due_date = $4, status_id = $5
 		WHERE id = $6
 		RETURNING *
 	`
-	row := DB.QueryRow(query, invoice.Title, invoice.Amount, invoice.IssueDate, invoice.DueDate, invoice.StatusID, invoice.ID)
+	row := DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate, input.StatusID, input.ID)
 	data, err := newInvoiceResponse(row)
 	if err != nil {
 		return models.Invoice{}, fmt.Errorf("failed to update debt: %w", err)

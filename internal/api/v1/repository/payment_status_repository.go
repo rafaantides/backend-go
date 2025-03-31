@@ -12,30 +12,30 @@ import (
 	"github.com/google/uuid"
 )
 
-func newCategoryResponse(row *sql.Row) (models.Category, error) {
-	var data models.Category
+func newPaymentStatusResponse(row *sql.Row) (models.PaymentStatus, error) {
+	var data models.PaymentStatus
 	if err := row.Scan(&data.ID, &data.Name, &data.Description); err != nil {
-		return models.Category{}, err
+		return models.PaymentStatus{}, err
 	}
 	return data, nil
 }
 
-func newCategoriesResponse(rows *sql.Rows) ([]dto.CategoriesResponse, error) {
+func newPaymentsStatusResponse(rows *sql.Rows) ([]dto.PaymentStatusResponse, error) {
 	defer rows.Close()
-	response := make([]dto.CategoriesResponse, 0)
+	response := make([]dto.PaymentStatusResponse, 0)
 	for rows.Next() {
-		var data dto.CategoriesResponse
+		var data dto.PaymentStatusResponse
 		if err := rows.Scan(&data.ID, &data.Name, &data.Description); err != nil {
-			return make([]dto.CategoriesResponse, 0), err
+			return make([]dto.PaymentStatusResponse, 0), err
 		}
 		response = append(response, data)
 	}
 	return response, nil
 }
 
-func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
-	row := DB.QueryRow(`SELECT * FROM categories WHERE id = $1`, id)
-	data, err := newCategoryResponse(row)
+func GetPaymentStatusByID(id uuid.UUID) (*models.PaymentStatus, error) {
+	row := DB.QueryRow(`SELECT * FROM payment_status WHERE id = $1`, id)
+	data, err := newPaymentStatusResponse(row)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -47,12 +47,12 @@ func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 	return &data, nil
 }
 
-func GetCategoryIDByName(name *string) (*uuid.UUID, error) {
+func GetPaymentStatusIDByName(name *string) (*uuid.UUID, error) {
 	if name == nil {
 		return nil, nil
 	}
 	var id uuid.UUID
-	err := DB.QueryRow(`SELECT id FROM categories WHERE name = $1`, name).Scan(&id)
+	err := DB.QueryRow(`SELECT id FROM payment_status WHERE name = $1`, name).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.ErrNotFound
@@ -63,8 +63,8 @@ func GetCategoryIDByName(name *string) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-func DeleteCategoryByID(id uuid.UUID) error {
-	query := `DELETE FROM categories WHERE id = $1`
+func DeletePaymentStatusByID(id uuid.UUID) error {
+	query := `DELETE FROM payment_status WHERE id = $1`
 	result, err := DB.Exec(query, id)
 	if err != nil {
 		return err
@@ -81,46 +81,46 @@ func DeleteCategoryByID(id uuid.UUID) error {
 	return nil
 }
 
-func InsertCategory(input models.Category) (models.Category, error) {
-	query := `INSERT INTO categories (name, description)
+func InsertPaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error) {
+	query := `INSERT INTO payment_status (name, description)
 			  VALUES ($1, $2)
 			  RETURNING id, name, description`
 
 	row := DB.QueryRow(query, input.Name, input.Description)
-	data, err := newCategoryResponse(row)
+	data, err := newPaymentStatusResponse(row)
 	if err != nil {
-		return models.Category{}, errs.FailedToSave("categories", err)
+		return models.PaymentStatus{}, errs.FailedToSave("payment_status", err)
 	}
 
 	return data, nil
 }
 
-func UpdateCategory(input models.Category) (models.Category, error) {
+func UpdatePaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error) {
 	query := `
-		UPDATE categories
+		UPDATE payment_status
 		SET name = $1, description = $2
 		WHERE id = $3
 		RETURNING *
 	`
 
 	row := DB.QueryRow(query, input.Name, input.Description)
-	data, err := newCategoryResponse(row)
+	data, err := newPaymentStatusResponse(row)
 	if err != nil {
-		return models.Category{}, errs.FailedToSave("categories", err)
+		return models.PaymentStatus{}, errs.FailedToSave("payment_status", err)
 	}
 	return data, nil
 }
 
-func ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, error) {
+func ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, error) {
 	query := `
         SELECT
 			id,
             name,
 			description
-		FROM categories
+		FROM payment_status
     `
 
-	filterQuery, args := buildCategoryFilters(pgn)
+	filterQuery, args := buildPaymentStatusFilters(pgn)
 	query += filterQuery
 
 	argIndex := len(args) + 1
@@ -133,12 +133,12 @@ func ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, error
 		return nil, err
 	}
 
-	return newCategoriesResponse(rows)
+	return newPaymentsStatusResponse(rows)
 }
 
-func CountCategories(pgn *pagination.Pagination) (int, error) {
-	query := "SELECT COUNT(*) FROM categories"
-	filterQuery, args := buildCategoryFilters(pgn)
+func CountPaymentStatus(pgn *pagination.Pagination) (int, error) {
+	query := "SELECT COUNT(*) FROM payment_status"
+	filterQuery, args := buildPaymentStatusFilters(pgn)
 	query += filterQuery
 
 	var total int
@@ -146,7 +146,7 @@ func CountCategories(pgn *pagination.Pagination) (int, error) {
 	return total, err
 }
 
-func buildCategoryFilters(pgn *pagination.Pagination) (string, []any) {
+func buildPaymentStatusFilters(pgn *pagination.Pagination) (string, []any) {
 	var conditions []string
 	var args []any
 	argIndex := 1
