@@ -17,16 +17,16 @@ func ParseCategory(categoryReq dto.CategoryRequest) (models.Category, error) {
 
 }
 
-func CreateCategory(Category models.Category) (models.Category, error) {
-	return repository.InsertCategory(Category)
+func CreateCategory(input models.Category) (models.Category, error) {
+	return repository.InsertCategory(input)
 }
 
-func UpdateCategory(Category models.Category) (models.Category, error) {
-	return repository.UpdateCategory(Category)
+func UpdateCategory(input models.Category) (models.Category, error) {
+	return repository.UpdateCategory(input)
 }
 
-func ListCategories(pgn *pagination.Pagination) ([]dto.CategoryResponse, int, error) {
-	invoices, err := repository.ListCategories(pgn)
+func ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, int, error) {
+	data, err := repository.ListCategories(pgn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -36,7 +36,7 @@ func ListCategories(pgn *pagination.Pagination) ([]dto.CategoryResponse, int, er
 		return nil, 0, err
 	}
 
-	return invoices, total, nil
+	return data, total, nil
 }
 
 func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
