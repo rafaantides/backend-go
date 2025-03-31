@@ -23,20 +23,20 @@ import (
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts [post]
 func CreateDebtHandler(c *gin.Context) {
-	var debtReq dto.DebtRequest
+	var req dto.DebtRequest
 
-	if err := c.ShouldBindJSON(&debtReq); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	debt, err := services.ParseDebt(debtReq)
+	input, err := services.ParseDebt(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	newDebt, err := services.CreateDebt(debt)
+	newDebt, err := services.CreateDebt(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -57,13 +57,13 @@ func CreateDebtHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [get]
 func GetDebtByIDHandler(c *gin.Context) {
-	debtID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || debtID == nil {
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	debt, err := services.GetDebtByID(*debtID)
+	data, err := services.GetDebtByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -73,7 +73,7 @@ func GetDebtByIDHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, debt)
+	c.JSON(http.StatusOK, data)
 }
 
 // @Summary Listar todos os débitos
@@ -128,7 +128,7 @@ func ListDebtsHandler(c *gin.Context) {
 		return
 	}
 
-	debts, total, err := services.ListDebts(flt, pgn)
+	response, total, err := services.ListDebts(flt, pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -137,7 +137,7 @@ func ListDebtsHandler(c *gin.Context) {
 
 	pgn.SetPaginationHeaders(c, total)
 
-	c.JSON(http.StatusOK, debts)
+	c.JSON(http.StatusOK, response)
 }
 
 // @Summary Atualizar um débito
@@ -153,13 +153,13 @@ func ListDebtsHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [put]
 func UpdateDebtHandler(c *gin.Context) {
-	debtID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || debtID == nil {
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	_, err = services.GetDebtByID(*debtID)
+	_, err = services.GetDebtByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -169,25 +169,25 @@ func UpdateDebtHandler(c *gin.Context) {
 		return
 	}
 
-	var debtReq dto.DebtRequest
-	if err := c.ShouldBindJSON(&debtReq); err != nil {
+	var req dto.DebtRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	debt, err := services.ParseDebt(debtReq)
+	input, err := services.ParseDebt(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	updateDebt, err := services.UpdateDebt(debt)
+	data, err := services.UpdateDebt(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
-	c.JSON(http.StatusOK, updateDebt)
+	c.JSON(http.StatusOK, data)
 }
 
 // @Summary Deletar um débito
@@ -202,13 +202,13 @@ func UpdateDebtHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [delete]
 func DeleteDebtHandler(c *gin.Context) {
-	debtID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || debtID == nil {
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = services.DeleteDebtByID(*debtID)
+	err = services.DeleteDebtByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))

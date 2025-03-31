@@ -12,21 +12,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateCategoryHandler(c *gin.Context) {
-	var req dto.CategoryRequest
+func CreatePaymentStatusHandler(c *gin.Context) {
+	var req dto.PaymentStatusRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	input, err := services.ParseCategory(req)
+	input, err := services.ParsePaymentStatus(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.CreateCategory(input)
+	data, err := services.CreatePaymentStatus(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
@@ -35,14 +35,14 @@ func CreateCategoryHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, data)
 }
 
-func GetCategoryByIDHandler(c *gin.Context) {
+func GetPaymentStatusByIDHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.GetCategoryByID(*id)
+	data, err := services.GetPaymentStatusByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -55,7 +55,7 @@ func GetCategoryByIDHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func ListCategorysHandler(c *gin.Context) {
+func ListPaymentStatussHandler(c *gin.Context) {
 	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
@@ -86,26 +86,26 @@ func ListCategorysHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func UpdateCategoryHandler(c *gin.Context) {
+func UpdatePaymentStatusHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	var req dto.CategoryRequest
+	var req dto.PaymentStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	input, err := services.ParseCategory(req)
+	input, err := services.ParsePaymentStatus(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.UpdateCategory(input)
+	data, err := services.UpdatePaymentStatus(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -114,14 +114,14 @@ func UpdateCategoryHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func DeleteCategoryHandler(c *gin.Context) {
+func DeletePaymentStatusHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = services.DeleteCategoryByID(*id)
+	err = services.DeletePaymentStatusByID(*id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return

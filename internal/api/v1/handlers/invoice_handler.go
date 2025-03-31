@@ -23,26 +23,26 @@ import (
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [post]
 func CreateInvoiceHandler(c *gin.Context) {
-	var invoiceReq dto.InvoiceRequest
+	var req dto.InvoiceRequest
 
-	if err := c.ShouldBindJSON(&invoiceReq); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	invoice, err := services.ParseInvoice(invoiceReq)
+	input, err := services.ParseInvoice(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	newInvoice, err := services.CreateInvoice(invoice)
+	data, err := services.CreateInvoice(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	c.JSON(http.StatusCreated, newInvoice)
+	c.JSON(http.StatusCreated, data)
 }
 
 // @Summary Buscar fatura por ID
@@ -57,13 +57,13 @@ func CreateInvoiceHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [get]
 func GetInvoiceByIDHandler(c *gin.Context) {
-	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || invoiceID == nil {
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	invoice, err := services.GetInvoiceByID(*invoiceID)
+	data, err := services.GetInvoiceByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -73,7 +73,7 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, invoice)
+	c.JSON(http.StatusOK, data)
 }
 
 // @Summary Listar faturas
@@ -124,7 +124,7 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	invoices, total, err := services.ListInvoices(flt, pgn)
+	response, total, err := services.ListInvoices(flt, pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -133,7 +133,7 @@ func ListInvoicesHandler(c *gin.Context) {
 
 	pgn.SetPaginationHeaders(c, total)
 
-	c.JSON(http.StatusOK, invoices)
+	c.JSON(http.StatusOK, response)
 }
 
 // @Summary Atualizar uma fatura
@@ -149,31 +149,31 @@ func ListInvoicesHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [put]
 func UpdateInvoiceHandler(c *gin.Context) {
-	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || invoiceID == nil {
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	var invoiceReq dto.InvoiceRequest
-	if err := c.ShouldBindJSON(&invoiceReq); err != nil {
+	var req dto.InvoiceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	invoice, err := services.ParseInvoice(invoiceReq)
+	input, err := services.ParseInvoice(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	updatedInvoice, err := services.UpdateInvoice(invoice)
+	data, err := services.UpdateInvoice(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedInvoice)
+	c.JSON(http.StatusOK, data)
 }
 
 // @Summary Deletar uma fatura
@@ -188,13 +188,13 @@ func UpdateInvoiceHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [delete]
 func DeleteInvoiceHandler(c *gin.Context) {
-	invoiceID, err := utils.ToUUIDPointer(c.Param("id"))
-	if err != nil || invoiceID == nil {
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = services.DeleteInvoiceByID(*invoiceID)
+	err = services.DeleteInvoiceByID(*id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
