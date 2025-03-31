@@ -92,11 +92,26 @@ type CategoryRequest struct {
 	Description string `json:"description"`
 }
 
-type CategoryResponse struct {
+type CategoriesResponse struct {
 	// ID único da categoria
 	ID uuid.UUID `json:"id"`
 	// Nome da categoria
 	Name string `json:"name"`
 	// Descrião da categoria
+	Description float64 `json:"description"`
+}
+
+// PaymentStatus
+type PaymentStatusRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type PaymentStatusResponse struct {
+	// ID único do status
+	ID uuid.UUID `json:"id"`
+	// Nome do status
+	Name string `json:"name"`
+	// Descrião do status
 	Description float64 `json:"description"`
 }
