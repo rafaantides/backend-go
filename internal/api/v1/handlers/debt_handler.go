@@ -92,7 +92,7 @@ func GetDebtByIDHandler(c *gin.Context) {
 // @Param page query int false "Número da página"
 // @Param page_size query int false "Tamanho da página"
 // @Param order_by query string false "Ordenação dos resultados (ex: amount, due_date)"
-// @Success 200 {array} dto.DebtResponse "Lista de débitos"
+// @Success 200 {array} dto.DebtsResponse "Lista de débitos"
 // @Failure 400 {object} errs.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts [get]

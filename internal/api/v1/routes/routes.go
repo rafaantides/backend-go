@@ -10,7 +10,7 @@ func RegisterDocsRoutes(router *gin.RouterGroup) {
 	router.StaticFile("/swagger.json", "./docs/v1/swagger.json")
 	router.Static("/static", "./static")
 
-	router.GET("/", func(c *gin.Context) {
+	router.GET("", func(c *gin.Context) {
 		c.File("./docs/v1/docs.html")
 	})
 
@@ -27,24 +27,24 @@ func RegisterDocsRoutes(router *gin.RouterGroup) {
 }
 
 func RegisterDebtRoutes(router *gin.RouterGroup) {
-	router.POST("/", handlers.CreateDebtHandler)
-	router.GET("/", handlers.ListDebtsHandler)
+	router.POST("", handlers.CreateDebtHandler)
+	router.GET("", handlers.ListDebtsHandler)
 	router.GET("/:id", handlers.GetDebtByIDHandler)
 	router.PUT("/:id", handlers.UpdateDebtHandler)
 	router.DELETE("/:id", handlers.DeleteDebtHandler)
 }
 
 func RegisterInvoiceRoutes(router *gin.RouterGroup) {
-	router.POST("/", handlers.CreateInvoiceHandler)
-	router.GET("/", handlers.ListInvoicesHandler)
+	router.POST("", handlers.CreateInvoiceHandler)
+	router.GET("", handlers.ListInvoicesHandler)
 	router.GET("/:id", handlers.GetInvoiceByIDHandler)
 	router.PUT("/:id", handlers.UpdateInvoiceHandler)
 	router.DELETE("/:id", handlers.DeleteInvoiceHandler)
 }
 
 func RegisterCategoryRoutes(router *gin.RouterGroup) {
-	router.POST("/", handlers.CreateCategoryHandler)
-	router.GET("/", handlers.ListCategorysHandler)
+	router.POST("", handlers.CreateCategoryHandler)
+	router.GET("", handlers.ListCategorysHandler)
 	router.GET("/:id", handlers.GetCategoryByIDHandler)
 	router.PUT("/:id", handlers.UpdateCategoryHandler)
 	router.DELETE("/:id", handlers.DeleteCategoryHandler)

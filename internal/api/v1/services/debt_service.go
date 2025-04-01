@@ -75,7 +75,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return repository.UpdateDebt(debt)
 }
 
-func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, int, error) {
+func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, int, error) {
 	debts, err := repository.ListDebts(flt, pgn)
 	if err != nil {
 		return nil, 0, err

@@ -21,6 +21,16 @@ func main() {
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
 
+	// Configuração do CORS
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"*"}, // Frontend
+	// 	// AllowOrigins:     []string{"http://localhost:3000"}, // Frontend
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+	// 	AllowCredentials: true, // Permitir cookies
+	// }))
+
+	// v1.Use(middlewares.CORSMiddleware())
 	v1.Use(middlewares.UUIDMiddleware())
 	v1.Use(middlewares.ErrorMiddleware())
 

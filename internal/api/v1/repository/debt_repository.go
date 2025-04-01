@@ -25,17 +25,17 @@ func newDebtResponse(row *sql.Row) (models.Debt, error) {
 	return data, nil
 }
 
-func newDebtsResponse(rows *sql.Rows) ([]dto.DebtResponse, error) {
+func newDebtsResponse(rows *sql.Rows) ([]dto.DebtsResponse, error) {
 	defer rows.Close()
-	response := make([]dto.DebtResponse, 0)
+	response := make([]dto.DebtsResponse, 0)
 	for rows.Next() {
-		var data dto.DebtResponse
+		var data dto.DebtsResponse
 		if err := rows.Scan(
 			&data.ID, &data.Title, &data.Amount, &data.PurchaseDate, &data.DueDate,
 			&data.CategoryID, &data.StatusID, &data.CreatedAt, &data.UpdatedAt,
 			&data.Category, &data.InvoiceTitle, &data.Status,
 		); err != nil {
-			return make([]dto.DebtResponse, 0), err
+			return make([]dto.DebtsResponse, 0), err
 		}
 		response = append(response, data)
 	}
@@ -100,7 +100,7 @@ func UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return data, nil
 }
 
-func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, error) {
+func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
 	query := `
         SELECT
             d.id,

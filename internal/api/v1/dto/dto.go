@@ -11,7 +11,7 @@ type DebtRequest struct {
 	Amount       string `json:"amount"`
 }
 
-type DebtResponse struct {
+type DebtsResponse struct {
 	// ID único do débito
 	ID uuid.UUID `json:"id"`
 	// Título da fatura associada
