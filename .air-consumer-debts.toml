@@ -3,19 +3,19 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-bin = "./tmp/main-api"
-full_bin = "./tmp/main-api api --debug true"
-cmd = "go build -o ./tmp/main-api ./main.go"
+bin = "./tmp/main-consumer"
+full_bin = "./tmp/main-consumer consumer debts"
+cmd = "go build -o ./tmp/main-consumer ./main.go"
 include = ["cmd", "internal", "pkg", "go.mod", "go.sum"]
 exclude = []
-log = "air_errors.log"
+log = "air_errors_consumer.log"
 delay = 1000
 
 [log]
 time = true
 
 [color]
-main = "magenta"
+main = "cyan"
 
 [misc]
 clean_on_exit = true

@@ -12,7 +12,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParseInvoice(invoiceReq dto.InvoiceRequest) (models.Invoice, error) {
+type InvoiceService struct {
+	DB *repository.Database
+}
+
+func NewInvoiceService(db *repository.Database) *InvoiceService {
+	return &InvoiceService{DB: db}
+}
+
+func (s *InvoiceService) ParseInvoice(invoiceReq dto.InvoiceRequest) (models.Invoice, error) {
 	issueDate, err := time.Parse("2006-01-02", invoiceReq.IssueDate)
 	if err != nil {
 		return models.Invoice{}, errs.DateParsing("issue_date")
@@ -37,21 +45,21 @@ func ParseInvoice(invoiceReq dto.InvoiceRequest) (models.Invoice, error) {
 
 }
 
-func CreateInvoice(Invoice models.Invoice) (models.Invoice, error) {
-	return repository.InsertInvoice(Invoice)
+func (s *InvoiceService) CreateInvoice(Invoice models.Invoice) (models.Invoice, error) {
+	return s.DB.InsertInvoice(Invoice)
 }
 
-func UpdateInvoice(Invoice models.Invoice) (models.Invoice, error) {
-	return repository.UpdateInvoice(Invoice)
+func (s *InvoiceService) UpdateInvoice(Invoice models.Invoice) (models.Invoice, error) {
+	return s.DB.UpdateInvoice(Invoice)
 }
 
-func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, int, error) {
-	invoices, err := repository.ListInvoices(flt, pgn)
+func (s *InvoiceService) ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, int, error) {
+	invoices, err := s.DB.ListInvoices(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, err := repository.CountInvoices(flt, pgn)
+	total, err := s.DB.CountInvoices(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -59,10 +67,10 @@ func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.Inv
 	return invoices, total, nil
 }
 
-func GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
-	return repository.GetInvoiceByID(id)
+func (s *InvoiceService) GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
+	return s.DB.GetInvoiceByID(id)
 }
 
-func DeleteInvoiceByID(id uuid.UUID) error {
-	return repository.DeleteInvoiceByID(id)
+func (s *InvoiceService) DeleteInvoiceByID(id uuid.UUID) error {
+	return s.DB.DeleteInvoiceByID(id)
 }

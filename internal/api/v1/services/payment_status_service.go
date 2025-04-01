@@ -9,7 +9,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParsePaymentStatus(categoryReq dto.PaymentStatusRequest) (models.PaymentStatus, error) {
+type PaymentStatusService struct {
+	DB *repository.Database
+}
+
+func NewPaymentStatusService(db *repository.Database) *PaymentStatusService {
+	return &PaymentStatusService{DB: db}
+}
+
+func (s *PaymentStatusService) ParsePaymentStatus(categoryReq dto.PaymentStatusRequest) (models.PaymentStatus, error) {
 	return models.PaymentStatus{
 		Name:        categoryReq.Name,
 		Description: &categoryReq.Description,
@@ -17,21 +25,21 @@ func ParsePaymentStatus(categoryReq dto.PaymentStatusRequest) (models.PaymentSta
 
 }
 
-func CreatePaymentStatus(PaymentStatus models.PaymentStatus) (models.PaymentStatus, error) {
-	return repository.InsertPaymentStatus(PaymentStatus)
+func (s *PaymentStatusService) CreatePaymentStatus(PaymentStatus models.PaymentStatus) (models.PaymentStatus, error) {
+	return s.DB.InsertPaymentStatus(PaymentStatus)
 }
 
-func UpdatePaymentStatus(PaymentStatus models.PaymentStatus) (models.PaymentStatus, error) {
-	return repository.UpdatePaymentStatus(PaymentStatus)
+func (s *PaymentStatusService) UpdatePaymentStatus(PaymentStatus models.PaymentStatus) (models.PaymentStatus, error) {
+	return s.DB.UpdatePaymentStatus(PaymentStatus)
 }
 
-func ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, int, error) {
-	invoices, err := repository.ListPaymentStatus(pgn)
+func (s *PaymentStatusService) ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, int, error) {
+	invoices, err := s.DB.ListPaymentStatus(pgn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, err := repository.CountPaymentStatus(pgn)
+	total, err := s.DB.CountPaymentStatus(pgn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -39,10 +47,10 @@ func ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse,
 	return invoices, total, nil
 }
 
-func GetPaymentStatusByID(id uuid.UUID) (*models.PaymentStatus, error) {
-	return repository.GetPaymentStatusByID(id)
+func (s *PaymentStatusService) GetPaymentStatusByID(id uuid.UUID) (*models.PaymentStatus, error) {
+	return s.DB.GetPaymentStatusByID(id)
 }
 
-func DeletePaymentStatusByID(id uuid.UUID) error {
-	return repository.DeletePaymentStatusByID(id)
+func (s *PaymentStatusService) DeletePaymentStatusByID(id uuid.UUID) error {
+	return s.DB.DeletePaymentStatusByID(id)
 }

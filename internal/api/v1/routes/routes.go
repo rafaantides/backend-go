@@ -26,26 +26,31 @@ func RegisterDocsRoutes(router *gin.RouterGroup) {
 
 }
 
-func RegisterDebtRoutes(router *gin.RouterGroup) {
-	router.POST("", handlers.CreateDebtHandler)
-	router.GET("", handlers.ListDebtsHandler)
-	router.GET("/:id", handlers.GetDebtByIDHandler)
-	router.PUT("/:id", handlers.UpdateDebtHandler)
-	router.DELETE("/:id", handlers.DeleteDebtHandler)
+func RegisterDebtRoutes(router *gin.RouterGroup, handler *handlers.DebtHandler) {
+	router.POST("", handler.CreateDebtHandler)
+	router.GET("", handler.ListDebtsHandler)
+	router.GET("/:id", handler.GetDebtByIDHandler)
+	router.PUT("/:id", handler.UpdateDebtHandler)
+	router.DELETE("/:id", handler.DeleteDebtHandler)
 }
 
-func RegisterInvoiceRoutes(router *gin.RouterGroup) {
-	router.POST("", handlers.CreateInvoiceHandler)
-	router.GET("", handlers.ListInvoicesHandler)
-	router.GET("/:id", handlers.GetInvoiceByIDHandler)
-	router.PUT("/:id", handlers.UpdateInvoiceHandler)
-	router.DELETE("/:id", handlers.DeleteInvoiceHandler)
+func RegisterInvoiceRoutes(router *gin.RouterGroup, handler *handlers.InvoiceHandler) {
+	router.POST("", handler.CreateInvoiceHandler)
+	router.GET("", handler.ListInvoicesHandler)
+	router.GET("/:id", handler.GetInvoiceByIDHandler)
+	router.PUT("/:id", handler.UpdateInvoiceHandler)
+	router.DELETE("/:id", handler.DeleteInvoiceHandler)
 }
 
-func RegisterCategoryRoutes(router *gin.RouterGroup) {
-	router.POST("", handlers.CreateCategoryHandler)
-	router.GET("", handlers.ListCategorysHandler)
-	router.GET("/:id", handlers.GetCategoryByIDHandler)
-	router.PUT("/:id", handlers.UpdateCategoryHandler)
-	router.DELETE("/:id", handlers.DeleteCategoryHandler)
+func RegisterCategoryRoutes(router *gin.RouterGroup, handler *handlers.CategoryHandler) {
+	router.POST("", handler.CreateCategoryHandler)
+	router.GET("", handler.ListCategorysHandler)
+	router.GET("/:id", handler.GetCategoryByIDHandler)
+	router.PUT("/:id", handler.UpdateCategoryHandler)
+	router.DELETE("/:id", handler.DeleteCategoryHandler)
+}
+
+func RegisterPaymentStatusRoutes(router *gin.RouterGroup, handler *handlers.PaymentStatusHandler) {
+	// TODO: continuar aqui
+	router.GET("/:id", handler.GetPaymentStatusByIDHandler)
 }

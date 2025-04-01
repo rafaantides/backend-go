@@ -9,7 +9,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParseCategory(categoryReq dto.CategoryRequest) (models.Category, error) {
+type CategoryService struct {
+	DB *repository.Database
+}
+
+func NewCategoryService(db *repository.Database) *CategoryService {
+	return &CategoryService{DB: db}
+}
+
+func (s *CategoryService) ParseCategory(categoryReq dto.CategoryRequest) (models.Category, error) {
 	return models.Category{
 		Name:        categoryReq.Name,
 		Description: &categoryReq.Description,
@@ -17,21 +25,21 @@ func ParseCategory(categoryReq dto.CategoryRequest) (models.Category, error) {
 
 }
 
-func CreateCategory(input models.Category) (models.Category, error) {
-	return repository.InsertCategory(input)
+func (s *CategoryService) CreateCategory(input models.Category) (models.Category, error) {
+	return s.DB.InsertCategory(input)
 }
 
-func UpdateCategory(input models.Category) (models.Category, error) {
-	return repository.UpdateCategory(input)
+func (s *CategoryService) UpdateCategory(input models.Category) (models.Category, error) {
+	return s.DB.UpdateCategory(input)
 }
 
-func ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, int, error) {
-	data, err := repository.ListCategories(pgn)
+func (s *CategoryService) ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, int, error) {
+	data, err := s.DB.ListCategories(pgn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, err := repository.CountCategories(pgn)
+	total, err := s.DB.CountCategories(pgn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -39,10 +47,10 @@ func ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, int, 
 	return data, total, nil
 }
 
-func GetCategoryByID(id uuid.UUID) (*models.Category, error) {
-	return repository.GetCategoryByID(id)
+func (s *CategoryService) GetCategoryByID(id uuid.UUID) (*models.Category, error) {
+	return s.DB.GetCategoryByID(id)
 }
 
-func DeleteCategoryByID(id uuid.UUID) error {
-	return repository.DeleteCategoryByID(id)
+func (s *CategoryService) DeleteCategoryByID(id uuid.UUID) error {
+	return s.DB.DeleteCategoryByID(id)
 }

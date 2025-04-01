@@ -12,6 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type InvoiceHandler struct {
+	Service *services.InvoiceService
+}
+
+func NewInvoiceHandler(service *services.InvoiceService) *InvoiceHandler {
+	return &InvoiceHandler{Service: service}
+}
+
 // @Summary Criar uma nova fatura
 // @Description Cria uma nova fatura com os dados fornecidos no corpo da requisição
 // @Tags Faturas
@@ -22,7 +30,7 @@ import (
 // @Failure 400 {object} errs.ErrorResponse "Requisição inválida"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [post]
-func CreateInvoiceHandler(c *gin.Context) {
+func (h *InvoiceHandler) CreateInvoiceHandler(c *gin.Context) {
 	var req dto.InvoiceRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,13 +38,13 @@ func CreateInvoiceHandler(c *gin.Context) {
 		return
 	}
 
-	input, err := services.ParseInvoice(req)
+	input, err := h.Service.ParseInvoice(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.CreateInvoice(input)
+	data, err := h.Service.CreateInvoice(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
@@ -56,14 +64,14 @@ func CreateInvoiceHandler(c *gin.Context) {
 // @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [get]
-func GetInvoiceByIDHandler(c *gin.Context) {
+func (h *InvoiceHandler) GetInvoiceByIDHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.GetInvoiceByID(*id)
+	data, err := h.Service.GetInvoiceByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -94,7 +102,7 @@ func GetInvoiceByIDHandler(c *gin.Context) {
 // @Failure 400 {object} errs.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [get]
-func ListInvoicesHandler(c *gin.Context) {
+func (h *InvoiceHandler) ListInvoicesHandler(c *gin.Context) {
 	var flt dto.InvoiceFilters
 	if err := c.ShouldBindQuery(&flt); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -124,7 +132,7 @@ func ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	response, total, err := services.ListInvoices(flt, pgn)
+	response, total, err := h.Service.ListInvoices(flt, pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -148,7 +156,7 @@ func ListInvoicesHandler(c *gin.Context) {
 // @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [put]
-func UpdateInvoiceHandler(c *gin.Context) {
+func (h *InvoiceHandler) UpdateInvoiceHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -161,13 +169,13 @@ func UpdateInvoiceHandler(c *gin.Context) {
 		return
 	}
 
-	input, err := services.ParseInvoice(req)
+	input, err := h.Service.ParseInvoice(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.UpdateInvoice(input)
+	data, err := h.Service.UpdateInvoice(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -187,14 +195,14 @@ func UpdateInvoiceHandler(c *gin.Context) {
 // @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [delete]
-func DeleteInvoiceHandler(c *gin.Context) {
+func (h *InvoiceHandler) DeleteInvoiceHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = services.DeleteInvoiceByID(*id)
+	err = h.Service.DeleteInvoiceByID(*id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return

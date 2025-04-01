@@ -13,6 +13,108 @@ import (
 	"github.com/lib/pq"
 )
 
+func (d *Database) GetDebtByID(id uuid.UUID) (*models.Debt, error) {
+	row := d.DB.QueryRow(`SELECT * FROM debts WHERE id = $1`, id)
+	data, err := newDebtResponse(row)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.ErrNotFound
+		}
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (d *Database) DeleteDebtByID(id uuid.UUID) error {
+	query := `DELETE FROM debts WHERE id = $1`
+	result, err := d.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errs.ErrNotFound
+	}
+	return nil
+}
+
+func (d *Database) InsertDebt(debt models.Debt) (models.Debt, error) {
+	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date)
+			  VALUES ($1, $2, $3, $4, $5, $6)
+			  RETURNING *`
+
+	row := d.DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID,
+		debt.Amount, debt.PurchaseDate, debt.DueDate)
+	data, err := newDebtResponse(row)
+	if err != nil {
+		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
+	}
+	return data, nil
+}
+
+func (d *Database) UpdateDebt(debt models.Debt) (models.Debt, error) {
+	query := `
+		UPDATE debts 
+		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 , status_id = $5
+		WHERE id = $6
+		RETURNING *
+	`
+	row := d.DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.StatusID, debt.ID)
+	data, err := newDebtResponse(row)
+	if err != nil {
+		return models.Debt{}, fmt.Errorf("failed to update debt: %w", err)
+	}
+	return data, nil
+}
+
+func (d *Database) ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
+	query := `
+        SELECT
+            d.id,
+            d.title,
+            d.amount,
+            d.purchase_date,
+            d.due_date,
+            d.category_id,
+            d.status_id,
+            d.created_at,
+            d.updated_at,
+            c.name AS category,
+            i.title AS invoice_title,
+            s.name AS status
+        FROM debts d
+        LEFT JOIN categories c ON d.category_id = c.id
+        LEFT JOIN payment_status s ON d.status_id = s.id
+        LEFT JOIN invoices i ON d.invoice_id = i.id
+    `
+	filterQuery, args := buildDebtFilters(flt, pgn)
+	query += filterQuery
+	query += fmt.Sprintf(" ORDER BY d.%s DESC", pgn.OrderBy)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)+1, len(args)+2)
+	args = append(args, pgn.PageSize, pgn.Offset())
+
+	rows, err := d.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return newDebtsResponse(rows)
+}
+
+func (d *Database) CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
+	query := "SELECT COUNT(*) FROM debts d LEFT JOIN categories c ON d.category_id = c.id LEFT JOIN payment_status s ON d.status_id = s.id LEFT JOIN invoices i ON d.invoice_id = i.id"
+	filterQuery, args := buildDebtFilters(flt, pgn)
+	query += filterQuery
+
+	var total int
+	err := d.DB.QueryRow(query, args...).Scan(&total)
+	return total, err
+}
+
 func newDebtResponse(row *sql.Row) (models.Debt, error) {
 	var data models.Debt
 	if err := row.Scan(
@@ -40,108 +142,6 @@ func newDebtsResponse(rows *sql.Rows) ([]dto.DebtsResponse, error) {
 		response = append(response, data)
 	}
 	return response, nil
-}
-
-func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
-	row := DB.QueryRow(`SELECT * FROM debts WHERE id = $1`, id)
-	data, err := newDebtResponse(row)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.ErrNotFound
-		}
-		return nil, err
-	}
-	return &data, nil
-}
-
-func DeleteDebtByID(id uuid.UUID) error {
-	query := `DELETE FROM debts WHERE id = $1`
-	result, err := DB.Exec(query, id)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errs.ErrNotFound
-	}
-	return nil
-}
-
-func InsertDebt(debt models.Debt) (models.Debt, error) {
-	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date)
-			  VALUES ($1, $2, $3, $4, $5, $6)
-			  RETURNING *`
-
-	row := DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID,
-		debt.Amount, debt.PurchaseDate, debt.DueDate)
-	data, err := newDebtResponse(row)
-	if err != nil {
-		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
-	}
-	return data, nil
-}
-
-func UpdateDebt(debt models.Debt) (models.Debt, error) {
-	query := `
-		UPDATE debts 
-		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 , status_id = $5
-		WHERE id = $6
-		RETURNING *
-	`
-	row := DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.StatusID, debt.ID)
-	data, err := newDebtResponse(row)
-	if err != nil {
-		return models.Debt{}, fmt.Errorf("failed to update debt: %w", err)
-	}
-	return data, nil
-}
-
-func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
-	query := `
-        SELECT
-            d.id,
-            d.title,
-            d.amount,
-            d.purchase_date,
-            d.due_date,
-            d.category_id,
-            d.status_id,
-            d.created_at,
-            d.updated_at,
-            c.name AS category,
-            i.title AS invoice_title,
-            s.name AS status
-        FROM debts d
-        LEFT JOIN categories c ON d.category_id = c.id
-        LEFT JOIN payment_status s ON d.status_id = s.id
-        LEFT JOIN invoices i ON d.invoice_id = i.id
-    `
-	filterQuery, args := buildDebtFilters(flt, pgn)
-	query += filterQuery
-	query += fmt.Sprintf(" ORDER BY d.%s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)+1, len(args)+2)
-	args = append(args, pgn.PageSize, pgn.Offset())
-
-	rows, err := DB.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return newDebtsResponse(rows)
-}
-
-func CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
-	query := "SELECT COUNT(*) FROM debts d LEFT JOIN categories c ON d.category_id = c.id LEFT JOIN payment_status s ON d.status_id = s.id LEFT JOIN invoices i ON d.invoice_id = i.id"
-	filterQuery, args := buildDebtFilters(flt, pgn)
-	query += filterQuery
-
-	var total int
-	err := DB.QueryRow(query, args...).Scan(&total)
-	return total, err
 }
 
 func buildDebtFilters(flt dto.DebtFilters, pgn *pagination.Pagination) (string, []any) {

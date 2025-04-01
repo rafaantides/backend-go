@@ -1,0 +1,60 @@
+package cmd
+
+import (
+	"backend-go/internal/worker/core"
+	"backend-go/internal/worker/handlers"
+	"backend-go/internal/worker/services/queue"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/spf13/cobra"
+)
+
+var (
+	configFile    string
+	prefetchCount int
+)
+
+var consumerCmd = &cobra.Command{
+	Use:   "consumer [type]",
+	Short: "Start the message consumer for debts or invoices",
+	Args:  cobra.ExactArgs(1), // Exige exatamente um argumento (o tipo do consumer)
+	Run: func(cmd *cobra.Command, args []string) {
+		startConsumer(args[0])
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(consumerCmd)
+
+	consumerCmd.Flags().StringVarP(&configFile, "config", "c", ".env", "Path to config file")
+	consumerCmd.Flags().IntVarP(&prefetchCount, "prefetch", "p", 1, "Prefetch count for messages")
+}
+
+func startConsumer(consumerType string) {
+	if err := godotenv.Load(configFile); err != nil {
+		log.Fatalf("Erro ao carregar o arquivo de configuração: %v", err)
+	}
+
+	amqpURI := os.Getenv("AMQP_URI")
+	queueName := os.Getenv("QUEUE_NAME")
+
+	queueService, err := queue.NewRabbitMQService(amqpURI, queueName)
+	if err != nil {
+		log.Fatalf("Erro ao conectar ao RabbitMQ: %v", err)
+	}
+	defer queueService.Close()
+
+	var processFunc core.ProcessMessageFunc
+
+	switch consumerType {
+	case "debts":
+		processFunc = handlers.ProcessDebts
+	default:
+		log.Fatalf("Consumer type inválido: %s. Escolha 'debts' ou 'invoices'", consumerType)
+	}
+
+	consumer := core.NewConsumer(queueService, processFunc, prefetchCount)
+	consumer.Start()
+}

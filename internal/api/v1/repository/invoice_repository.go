@@ -13,6 +13,105 @@ import (
 	"github.com/lib/pq"
 )
 
+func (d *Database) GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
+	row := d.DB.QueryRow(`SELECT * FROM invoices WHERE id = $1`, id)
+	data, err := newInvoiceResponse(row)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.ErrNotFound
+		}
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (d *Database) DeleteInvoiceByID(id uuid.UUID) error {
+	query := `DELETE FROM invoices WHERE id = $1`
+	result, err := d.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errs.ErrNotFound
+	}
+	return nil
+}
+
+func (d *Database) InsertInvoice(input models.Invoice) (models.Invoice, error) {
+	query := `INSERT INTO debts (title, amount, issue_date, due_date)
+			  VALUES ($1, $2, $3, $4)
+			  RETURNING *`
+
+	row := d.DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate)
+	data, err := newInvoiceResponse(row)
+	if err != nil {
+		return models.Invoice{}, fmt.Errorf("failed to insert invoice: %w", err)
+	}
+	return data, nil
+}
+
+func (d *Database) UpdateInvoice(input models.Invoice) (models.Invoice, error) {
+	query := `
+		UPDATE invoices
+		SET title = $1, amount = $2, issue_date = $3, due_date = $4, status_id = $5
+		WHERE id = $6
+		RETURNING *
+	`
+	row := d.DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate, input.StatusID, input.ID)
+	data, err := newInvoiceResponse(row)
+	if err != nil {
+		return models.Invoice{}, fmt.Errorf("failed to update debt: %w", err)
+	}
+	return data, nil
+}
+
+func (d *Database) ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
+	query := `
+        SELECT
+            i.id,
+			i.title,
+			i.amount,
+			i.issue_date,
+			i.due_date,
+			i.status_id,
+            i.created_at,
+			i.updated_at,
+			s.name AS status
+		FROM invoices i
+		LEFT JOIN payment_status s ON i.status_id = s.id
+    `
+
+	filterQuery, args := buildInvoiceFilters(flt, pgn)
+	query += filterQuery
+
+	argIndex := len(args) + 1
+	query += fmt.Sprintf(" ORDER BY i.%s DESC", pgn.OrderBy)
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
+	args = append(args, pgn.PageSize, pgn.Offset())
+
+	rows, err := d.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return newInvoicesResponse(rows)
+}
+
+func (d *Database) CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
+	query := "SELECT COUNT(*) FROM invoices i LEFT JOIN payment_status s ON i.status_id = s.id"
+	filterQuery, args := buildInvoiceFilters(flt, pgn)
+	query += filterQuery
+
+	var total int
+	err := d.DB.QueryRow(query, args...).Scan(&total)
+	return total, err
+}
+
 func newInvoiceResponse(row *sql.Row) (models.Invoice, error) {
 	var data models.Invoice
 	if err := row.Scan(
@@ -38,105 +137,6 @@ func newInvoicesResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
 		response = append(response, data)
 	}
 	return response, nil
-}
-
-func GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
-	row := DB.QueryRow(`SELECT * FROM invoices WHERE id = $1`, id)
-	data, err := newInvoiceResponse(row)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.ErrNotFound
-		}
-		return nil, err
-	}
-	return &data, nil
-}
-
-func DeleteInvoiceByID(id uuid.UUID) error {
-	query := `DELETE FROM invoices WHERE id = $1`
-	result, err := DB.Exec(query, id)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errs.ErrNotFound
-	}
-	return nil
-}
-
-func InsertInvoice(input models.Invoice) (models.Invoice, error) {
-	query := `INSERT INTO debts (title, amount, issue_date, due_date)
-			  VALUES ($1, $2, $3, $4)
-			  RETURNING *`
-
-	row := DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate)
-	data, err := newInvoiceResponse(row)
-	if err != nil {
-		return models.Invoice{}, fmt.Errorf("failed to insert invoice: %w", err)
-	}
-	return data, nil
-}
-
-func UpdateInvoice(input models.Invoice) (models.Invoice, error) {
-	query := `
-		UPDATE invoices
-		SET title = $1, amount = $2, issue_date = $3, due_date = $4, status_id = $5
-		WHERE id = $6
-		RETURNING *
-	`
-	row := DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate, input.StatusID, input.ID)
-	data, err := newInvoiceResponse(row)
-	if err != nil {
-		return models.Invoice{}, fmt.Errorf("failed to update debt: %w", err)
-	}
-	return data, nil
-}
-
-func ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
-	query := `
-        SELECT
-            i.id,
-			i.title,
-			i.amount,
-			i.issue_date,
-			i.due_date,
-			i.status_id,
-            i.created_at,
-			i.updated_at,
-			s.name AS status
-		FROM invoices i
-		LEFT JOIN payment_status s ON i.status_id = s.id
-    `
-
-	filterQuery, args := buildInvoiceFilters(flt, pgn)
-	query += filterQuery
-
-	argIndex := len(args) + 1
-	query += fmt.Sprintf(" ORDER BY i.%s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pgn.PageSize, pgn.Offset())
-
-	rows, err := DB.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return newInvoicesResponse(rows)
-}
-
-func CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
-	query := "SELECT COUNT(*) FROM invoices i LEFT JOIN payment_status s ON i.status_id = s.id"
-	filterQuery, args := buildInvoiceFilters(flt, pgn)
-	query += filterQuery
-
-	var total int
-	err := DB.QueryRow(query, args...).Scan(&total)
-	return total, err
 }
 
 func buildInvoiceFilters(flt dto.InvoiceFilters, pgn *pagination.Pagination) (string, []any) {

@@ -15,7 +15,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
+type DebtService struct {
+	DB *repository.Database
+}
+
+func NewDebtService(db *repository.Database) *DebtService {
+	return &DebtService{DB: db}
+}
+
+func (s *DebtService) ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	purchaseDate, err := time.Parse("2006-01-02", debtReq.PurchaseDate)
 	if err != nil {
 		return models.Debt{}, errs.ParsingField("purchase_date", err)
@@ -35,7 +43,7 @@ func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	categoryID = nil
 	category := categorizeTransaction(debtReq.Title)
 	if category != nil {
-		categoryID, err = repository.GetCategoryIDByName(category)
+		categoryID, err = s.DB.GetCategoryIDByName(category)
 		if errors.Is(err, errs.ErrNotFound) {
 			return models.Debt{}, errs.ResorceNotFound("category", *category)
 		}
@@ -60,28 +68,21 @@ func ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {
 	}, nil
 }
 
-func categorizeTransaction(name string) *string {
-	if category, exists := config.CategoryMap[name]; exists {
-		return &category
-	}
-	return nil
+func (s *DebtService) CreateDebt(debt models.Debt) (models.Debt, error) {
+	return s.DB.InsertDebt(debt)
 }
 
-func CreateDebt(debt models.Debt) (models.Debt, error) {
-	return repository.InsertDebt(debt)
+func (s *DebtService) UpdateDebt(debt models.Debt) (models.Debt, error) {
+	return s.DB.UpdateDebt(debt)
 }
 
-func UpdateDebt(debt models.Debt) (models.Debt, error) {
-	return repository.UpdateDebt(debt)
-}
-
-func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, int, error) {
-	debts, err := repository.ListDebts(flt, pgn)
+func (s *DebtService) ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, int, error) {
+	debts, err := s.DB.ListDebts(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, err := repository.CountDebts(flt, pgn)
+	total, err := s.DB.CountDebts(flt, pgn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -90,10 +91,17 @@ func ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResp
 
 }
 
-func GetDebtByID(id uuid.UUID) (*models.Debt, error) {
-	return repository.GetDebtByID(id)
+func (s *DebtService) GetDebtByID(id uuid.UUID) (*models.Debt, error) {
+	return s.DB.GetDebtByID(id)
 }
 
-func DeleteDebtByID(id uuid.UUID) error {
-	return repository.DeleteDebtByID(id)
+func (s *DebtService) DeleteDebtByID(id uuid.UUID) error {
+	return s.DB.DeleteDebtByID(id)
+}
+
+func categorizeTransaction(name string) *string {
+	if category, exists := config.CategoryMap[name]; exists {
+		return &category
+	}
+	return nil
 }

@@ -12,7 +12,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateCategoryHandler(c *gin.Context) {
+type CategoryHandler struct {
+	Service *services.CategoryService
+}
+
+func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
+	return &CategoryHandler{Service: service}
+}
+
+func (h *CategoryHandler) CreateCategoryHandler(c *gin.Context) {
 	var req dto.CategoryRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -20,13 +28,13 @@ func CreateCategoryHandler(c *gin.Context) {
 		return
 	}
 
-	input, err := services.ParseCategory(req)
+	input, err := h.Service.ParseCategory(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.CreateCategory(input)
+	data, err := h.Service.CreateCategory(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
@@ -35,14 +43,14 @@ func CreateCategoryHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, data)
 }
 
-func GetCategoryByIDHandler(c *gin.Context) {
+func (h *CategoryHandler) GetCategoryByIDHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.GetCategoryByID(*id)
+	data, err := h.Service.GetCategoryByID(*id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -55,7 +63,7 @@ func GetCategoryByIDHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func ListCategorysHandler(c *gin.Context) {
+func (h *CategoryHandler) ListCategorysHandler(c *gin.Context) {
 	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
@@ -74,7 +82,7 @@ func ListCategorysHandler(c *gin.Context) {
 		return
 	}
 
-	response, total, err := services.ListCategories(pgn)
+	response, total, err := h.Service.ListCategories(pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -86,7 +94,7 @@ func ListCategorysHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func UpdateCategoryHandler(c *gin.Context) {
+func (h *CategoryHandler) UpdateCategoryHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -99,13 +107,13 @@ func UpdateCategoryHandler(c *gin.Context) {
 		return
 	}
 
-	input, err := services.ParseCategory(req)
+	input, err := h.Service.ParseCategory(req)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := services.UpdateCategory(input)
+	data, err := h.Service.UpdateCategory(input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -114,14 +122,14 @@ func UpdateCategoryHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-func DeleteCategoryHandler(c *gin.Context) {
+func (h *CategoryHandler) DeleteCategoryHandler(c *gin.Context) {
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = services.DeleteCategoryByID(*id)
+	err = h.Service.DeleteCategoryByID(*id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
