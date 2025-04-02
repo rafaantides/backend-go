@@ -6,7 +6,6 @@ import (
 	"backend-go/pkg/pagination"
 
 	"github.com/google/uuid"
-	"github.com/streadway/amqp"
 )
 
 type Database interface {
@@ -41,13 +40,4 @@ type Database interface {
 	UpdatePaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error)
 	ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, error)
 	CountPaymentStatus(pgn *pagination.Pagination) (int, error)
-}
-
-type MessageQueue interface {
-	GetChannel() (*amqp.Channel, error)
-	GetQueueName() string
-	ConsumeMessages() (<-chan amqp.Delivery, error)
-	SendMessage(body []byte) error
-	AckMessage(msg amqp.Delivery) error
-	Close()
 }

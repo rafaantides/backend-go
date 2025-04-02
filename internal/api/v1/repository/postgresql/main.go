@@ -1,7 +1,7 @@
 package postgresql
 
 import (
-	"backend-go/internal/api/v1/interfaces"
+	"backend-go/internal/api/v1/repository/interfaces"
 	"database/sql"
 	"fmt"
 	"log"

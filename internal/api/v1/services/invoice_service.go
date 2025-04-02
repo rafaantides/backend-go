@@ -3,7 +3,7 @@ package services
 import (
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/v1/dto"
-	"backend-go/internal/api/v1/interfaces"
+	repository "backend-go/internal/api/v1/repository/interfaces"
 	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 	"strconv"
@@ -13,10 +13,10 @@ import (
 )
 
 type InvoiceService struct {
-	DB interfaces.Database
+	DB repository.Database
 }
 
-func NewInvoiceService(db interfaces.Database) *InvoiceService {
+func NewInvoiceService(db repository.Database) *InvoiceService {
 	return &InvoiceService{DB: db}
 }
 

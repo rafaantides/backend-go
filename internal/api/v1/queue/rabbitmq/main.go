@@ -1,7 +1,7 @@
-package queue
+package rabbitmq
 
 import (
-	"backend-go/internal/api/v1/interfaces"
+	"backend-go/internal/api/v1/queue/interfaces"
 
 	"github.com/streadway/amqp"
 )

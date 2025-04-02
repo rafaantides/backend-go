@@ -3,8 +3,9 @@ package cmd
 import (
 	"backend-go/internal/api/middlewares"
 	"backend-go/internal/api/v1/handlers"
-	"backend-go/internal/api/v1/interfaces"
-	"backend-go/internal/api/v1/queue"
+	queue "backend-go/internal/api/v1/queue/interfaces"
+	"backend-go/internal/api/v1/queue/rabbitmq"
+	repository "backend-go/internal/api/v1/repository/interfaces"
 	"backend-go/internal/api/v1/repository/postgresql"
 	"backend-go/internal/api/v1/routes"
 	"backend-go/internal/api/v1/services"
@@ -50,15 +51,15 @@ func startAPIServer() {
 	db := connectDatabase()
 	defer db.Close()
 
-	// q := connectQueue()
-	// defer q.Close()
+	mq := connectQueue()
+	defer mq.Close()
 
-	r := setupRouter(db)
+	r := setupRouter(db, mq)
 
 	r.Run(":" + apiPort)
 }
 
-func connectDatabase() interfaces.Database {
+func connectDatabase() repository.Database {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
@@ -75,11 +76,11 @@ func connectDatabase() interfaces.Database {
 	return db
 }
 
-func connectQueue() interfaces.MessageQueue {
+func connectQueue() queue.MessageQueue {
 	amqpURI := os.Getenv("AMQP_URI")
 	queueName := os.Getenv("QUEUE_NAME")
 
-	mq, err := queue.NewRabbitMQ(amqpURI, queueName)
+	mq, err := rabbitmq.NewRabbitMQ(amqpURI, queueName)
 
 	if err != nil {
 		log.Fatalf("Falha ao conectar a fila: %v", err)
@@ -89,7 +90,7 @@ func connectQueue() interfaces.MessageQueue {
 
 }
 
-func setupRouter(db interfaces.Database) *gin.Engine {
+func setupRouter(db repository.Database, mq queue.MessageQueue) *gin.Engine {
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
 
@@ -100,7 +101,7 @@ func setupRouter(db interfaces.Database) *gin.Engine {
 	v1.Use(middlewares.ErrorMiddleware())
 
 	// Criar services e handlers
-	debtService := services.NewDebtService(db)
+	debtService := services.NewDebtService(db, mq)
 	debtHandler := handlers.NewDebtHandler(debtService)
 
 	invoiceService := services.NewInvoiceService(db)

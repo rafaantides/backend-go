@@ -4,7 +4,8 @@ import (
 	"backend-go/internal/api/config"
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/v1/dto"
-	"backend-go/internal/api/v1/interfaces"
+	queue "backend-go/internal/api/v1/queue/interfaces"
+	repository "backend-go/internal/api/v1/repository/interfaces"
 	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 	"backend-go/pkg/utils"
@@ -16,12 +17,12 @@ import (
 )
 
 type DebtService struct {
-	DB interfaces.Database
-	// MQ interfaces.MessageQueue
+	DB repository.Database
+	MQ queue.MessageQueue
 }
 
-func NewDebtService(db interfaces.Database) *DebtService {
-	return &DebtService{DB: db}
+func NewDebtService(db repository.Database, mq queue.MessageQueue) *DebtService {
+	return &DebtService{DB: db, MQ: mq}
 }
 
 func (s *DebtService) ParseDebt(debtReq dto.DebtRequest) (models.Debt, error) {

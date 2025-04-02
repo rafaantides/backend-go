@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:latest
     restart: unless-stopped
     environment:
       POSTGRES_USER: admin
@@ -12,6 +12,18 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"  # Porta AMQP
+      - "15672:15672" # Interface de gerenciamento
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq 
 
   # n8n:
   #   image: n8nio/n8n:latest
@@ -40,3 +52,4 @@ services:
 volumes:
   postgres_data:
   n8n_data:
+  rabbitmq_data:
