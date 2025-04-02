@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/repository/models"
 	"encoding/json"
 	"io"
 	"log"

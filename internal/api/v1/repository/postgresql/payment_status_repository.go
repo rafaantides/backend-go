@@ -1,9 +1,9 @@
-package repository
+package postgresql
 
 import (
 	"backend-go/internal/api/errs"
-	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (d *Database) GetPaymentStatusByID(id uuid.UUID) (*models.PaymentStatus, error) {
+func (d *PostgreSQL) GetPaymentStatusByID(id uuid.UUID) (*models.PaymentStatus, error) {
 	row := d.DB.QueryRow(`SELECT * FROM payment_status WHERE id = $1`, id)
 	data, err := newPaymentStatusResponse(row)
 
@@ -26,7 +26,7 @@ func (d *Database) GetPaymentStatusByID(id uuid.UUID) (*models.PaymentStatus, er
 	return &data, nil
 }
 
-func (d *Database) GetPaymentStatusIDByName(name *string) (*uuid.UUID, error) {
+func (d *PostgreSQL) GetPaymentStatusIDByName(name *string) (*uuid.UUID, error) {
 	if name == nil {
 		return nil, nil
 	}
@@ -42,7 +42,7 @@ func (d *Database) GetPaymentStatusIDByName(name *string) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-func (d *Database) DeletePaymentStatusByID(id uuid.UUID) error {
+func (d *PostgreSQL) DeletePaymentStatusByID(id uuid.UUID) error {
 	query := `DELETE FROM payment_status WHERE id = $1`
 	result, err := d.DB.Exec(query, id)
 	if err != nil {
@@ -60,7 +60,7 @@ func (d *Database) DeletePaymentStatusByID(id uuid.UUID) error {
 	return nil
 }
 
-func (d *Database) InsertPaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error) {
+func (d *PostgreSQL) InsertPaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error) {
 	query := `INSERT INTO payment_status (name, description)
 			  VALUES ($1, $2)
 			  RETURNING id, name, description`
@@ -74,7 +74,7 @@ func (d *Database) InsertPaymentStatus(input models.PaymentStatus) (models.Payme
 	return data, nil
 }
 
-func (d *Database) UpdatePaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error) {
+func (d *PostgreSQL) UpdatePaymentStatus(input models.PaymentStatus) (models.PaymentStatus, error) {
 	query := `
 		UPDATE payment_status
 		SET name = $1, description = $2
@@ -90,7 +90,7 @@ func (d *Database) UpdatePaymentStatus(input models.PaymentStatus) (models.Payme
 	return data, nil
 }
 
-func (d *Database) ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, error) {
+func (d *PostgreSQL) ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, error) {
 	query := `
         SELECT
 			id,
@@ -115,7 +115,7 @@ func (d *Database) ListPaymentStatus(pgn *pagination.Pagination) ([]dto.PaymentS
 	return newPaymentsStatusResponse(rows)
 }
 
-func (d *Database) CountPaymentStatus(pgn *pagination.Pagination) (int, error) {
+func (d *PostgreSQL) CountPaymentStatus(pgn *pagination.Pagination) (int, error) {
 	query := "SELECT COUNT(*) FROM payment_status"
 	filterQuery, args := buildPaymentStatusFilters(pgn)
 	query += filterQuery

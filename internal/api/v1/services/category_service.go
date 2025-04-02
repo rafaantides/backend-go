@@ -1,19 +1,19 @@
 package services
 
 import (
-	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
-	"backend-go/internal/api/v1/repository"
+	"backend-go/internal/api/v1/interfaces"
+	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 
 	"github.com/google/uuid"
 )
 
 type CategoryService struct {
-	DB *repository.Database
+	DB interfaces.Database
 }
 
-func NewCategoryService(db *repository.Database) *CategoryService {
+func NewCategoryService(db interfaces.Database) *CategoryService {
 	return &CategoryService{DB: db}
 }
 

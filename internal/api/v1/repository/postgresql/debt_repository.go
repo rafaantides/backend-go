@@ -1,9 +1,9 @@
-package repository
+package postgresql
 
 import (
 	"backend-go/internal/api/errs"
-	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (d *Database) GetDebtByID(id uuid.UUID) (*models.Debt, error) {
+func (d *PostgreSQL) GetDebtByID(id uuid.UUID) (*models.Debt, error) {
 	row := d.DB.QueryRow(`SELECT * FROM debts WHERE id = $1`, id)
 	data, err := newDebtResponse(row)
 	if err != nil {
@@ -25,7 +25,7 @@ func (d *Database) GetDebtByID(id uuid.UUID) (*models.Debt, error) {
 	return &data, nil
 }
 
-func (d *Database) DeleteDebtByID(id uuid.UUID) error {
+func (d *PostgreSQL) DeleteDebtByID(id uuid.UUID) error {
 	query := `DELETE FROM debts WHERE id = $1`
 	result, err := d.DB.Exec(query, id)
 	if err != nil {
@@ -42,7 +42,7 @@ func (d *Database) DeleteDebtByID(id uuid.UUID) error {
 	return nil
 }
 
-func (d *Database) InsertDebt(debt models.Debt) (models.Debt, error) {
+func (d *PostgreSQL) InsertDebt(debt models.Debt) (models.Debt, error) {
 	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date)
 			  VALUES ($1, $2, $3, $4, $5, $6)
 			  RETURNING *`
@@ -56,7 +56,7 @@ func (d *Database) InsertDebt(debt models.Debt) (models.Debt, error) {
 	return data, nil
 }
 
-func (d *Database) UpdateDebt(debt models.Debt) (models.Debt, error) {
+func (d *PostgreSQL) UpdateDebt(debt models.Debt) (models.Debt, error) {
 	query := `
 		UPDATE debts 
 		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 , status_id = $5
@@ -71,7 +71,7 @@ func (d *Database) UpdateDebt(debt models.Debt) (models.Debt, error) {
 	return data, nil
 }
 
-func (d *Database) ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
+func (d *PostgreSQL) ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
 	query := `
         SELECT
             d.id,
@@ -105,7 +105,7 @@ func (d *Database) ListDebts(flt dto.DebtFilters, pgn *pagination.Pagination) ([
 	return newDebtsResponse(rows)
 }
 
-func (d *Database) CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
+func (d *PostgreSQL) CountDebts(flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
 	query := "SELECT COUNT(*) FROM debts d LEFT JOIN categories c ON d.category_id = c.id LEFT JOIN payment_status s ON d.status_id = s.id LEFT JOIN invoices i ON d.invoice_id = i.id"
 	filterQuery, args := buildDebtFilters(flt, pgn)
 	query += filterQuery

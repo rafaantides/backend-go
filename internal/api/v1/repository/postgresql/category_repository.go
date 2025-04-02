@@ -1,9 +1,9 @@
-package repository
+package postgresql
 
 import (
 	"backend-go/internal/api/errs"
-	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 	"database/sql"
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (d *Database) GetCategoryByID(id uuid.UUID) (*models.Category, error) {
+func (d *PostgreSQL) GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 	row := d.DB.QueryRow(`SELECT * FROM categories WHERE id = $1`, id)
 	data, err := newCategoryResponse(row)
 
@@ -26,7 +26,7 @@ func (d *Database) GetCategoryByID(id uuid.UUID) (*models.Category, error) {
 	return &data, nil
 }
 
-func(d *Database)  GetCategoryIDByName(name *string) (*uuid.UUID, error) {
+func (d *PostgreSQL) GetCategoryIDByName(name *string) (*uuid.UUID, error) {
 	if name == nil {
 		return nil, nil
 	}
@@ -42,7 +42,7 @@ func(d *Database)  GetCategoryIDByName(name *string) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-func (d *Database) DeleteCategoryByID(id uuid.UUID) error {
+func (d *PostgreSQL) DeleteCategoryByID(id uuid.UUID) error {
 	query := `DELETE FROM categories WHERE id = $1`
 	result, err := d.DB.Exec(query, id)
 	if err != nil {
@@ -60,7 +60,7 @@ func (d *Database) DeleteCategoryByID(id uuid.UUID) error {
 	return nil
 }
 
-func (d *Database) InsertCategory(input models.Category) (models.Category, error) {
+func (d *PostgreSQL) InsertCategory(input models.Category) (models.Category, error) {
 	query := `INSERT INTO categories (name, description)
 			  VALUES ($1, $2)
 			  RETURNING id, name, description`
@@ -74,7 +74,7 @@ func (d *Database) InsertCategory(input models.Category) (models.Category, error
 	return data, nil
 }
 
-func (d *Database) UpdateCategory(input models.Category) (models.Category, error) {
+func (d *PostgreSQL) UpdateCategory(input models.Category) (models.Category, error) {
 	query := `
 		UPDATE categories
 		SET name = $1, description = $2
@@ -90,7 +90,7 @@ func (d *Database) UpdateCategory(input models.Category) (models.Category, error
 	return data, nil
 }
 
-func (d *Database) ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, error) {
+func (d *PostgreSQL) ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesResponse, error) {
 	query := `
         SELECT
 			id,
@@ -115,7 +115,7 @@ func (d *Database) ListCategories(pgn *pagination.Pagination) ([]dto.CategoriesR
 	return newCategoriesResponse(rows)
 }
 
-func (d *Database) CountCategories(pgn *pagination.Pagination) (int, error) {
+func (d *PostgreSQL) CountCategories(pgn *pagination.Pagination) (int, error) {
 	query := "SELECT COUNT(*) FROM categories"
 	filterQuery, args := buildCategoryFilters(pgn)
 	query += filterQuery

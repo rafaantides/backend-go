@@ -1,16 +1,18 @@
 package queue
 
 import (
+	"backend-go/internal/api/v1/interfaces"
+
 	"github.com/streadway/amqp"
 )
 
-type RabbitMQService struct {
+type RabbitMQ struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
 	queue   string
 }
 
-func NewRabbitMQService(amqpURI, queueName string) (*RabbitMQService, error) {
+func NewRabbitMQ(amqpURI, queueName string) (interfaces.MessageQueue, error) {
 	conn, err := amqp.Dial(amqpURI)
 	if err != nil {
 		return nil, err
@@ -31,28 +33,28 @@ func NewRabbitMQService(amqpURI, queueName string) (*RabbitMQService, error) {
 		return nil, err
 	}
 
-	return &RabbitMQService{
+	return &RabbitMQ{
 		conn:    conn,
 		channel: ch,
 		queue:   queueName,
 	}, nil
 }
 
-func (r *RabbitMQService) GetChannel() (*amqp.Channel, error) {
+func (r *RabbitMQ) GetChannel() (*amqp.Channel, error) {
 	return r.channel, nil
 }
 
-func (r *RabbitMQService) GetQueueName() string {
+func (r *RabbitMQ) GetQueueName() string {
 	return r.queue
 }
 
-func (r *RabbitMQService) ConsumeMessages() (<-chan amqp.Delivery, error) {
+func (r *RabbitMQ) ConsumeMessages() (<-chan amqp.Delivery, error) {
 	return r.channel.Consume(
 		r.queue, "", false, false, false, false, nil,
 	)
 }
 
-func (r *RabbitMQService) SendMessage(body []byte) error {
+func (r *RabbitMQ) SendMessage(body []byte) error {
 	return r.channel.Publish(
 		"",
 		r.queue,
@@ -65,11 +67,11 @@ func (r *RabbitMQService) SendMessage(body []byte) error {
 	)
 }
 
-func (r *RabbitMQService) AckMessage(msg amqp.Delivery) error {
+func (r *RabbitMQ) AckMessage(msg amqp.Delivery) error {
 	return msg.Ack(false)
 }
 
-func (r *RabbitMQService) Close() {
+func (r *RabbitMQ) Close() {
 	r.channel.Close()
 	r.conn.Close()
 }

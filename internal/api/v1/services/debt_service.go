@@ -3,9 +3,9 @@ package services
 import (
 	"backend-go/internal/api/config"
 	"backend-go/internal/api/errs"
-	"backend-go/internal/api/models"
 	"backend-go/internal/api/v1/dto"
-	"backend-go/internal/api/v1/repository"
+	"backend-go/internal/api/v1/interfaces"
+	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
 	"backend-go/pkg/utils"
 	"errors"
@@ -16,10 +16,11 @@ import (
 )
 
 type DebtService struct {
-	DB *repository.Database
+	DB interfaces.Database
+	// MQ interfaces.MessageQueue
 }
 
-func NewDebtService(db *repository.Database) *DebtService {
+func NewDebtService(db interfaces.Database) *DebtService {
 	return &DebtService{DB: db}
 }
 
