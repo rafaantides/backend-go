@@ -1,40 +1,46 @@
 package postgresql
 
 import (
-	"backend-go/internal/api/v1/repository/interfaces"
-	"database/sql"
+	"backend-go/pkg/ent"
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
 )
 
 type PostgreSQL struct {
-	DB *sql.DB
+	Client *ent.Client
 }
 
-func NewPostgreSQL(dsn string) (interfaces.Database, error) {
-	db, err := sql.Open("postgres", dsn)
+// func NewPostgreSQL(dsn string) (interfaces.Database, error) {
+func NewPostgreSQL(dsn string) (*PostgreSQL, error) {
+	drv, err := sql.Open(dialect.Postgres, dsn)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao conectar ao banco: %w", err)
+		return nil, fmt.Errorf("erro ao abrir conexão com o banco: %w", err)
 	}
 
-	if err = db.Ping(); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("erro ao pingar o banco: %w", err)
+	client := ent.NewClient(ent.Driver(drv))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := client.Schema.Create(ctx); err != nil {
+		client.Close()
+		return nil, fmt.Errorf("erro ao criar schema: %w", err)
 	}
 
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(30 * time.Minute)
-
-	log.Println("Banco de dados conectado")
-	return &PostgreSQL{DB: db}, nil
+	log.Println("Banco de dados conectado com sucesso via Ent")
+	return &PostgreSQL{Client: client}, nil
 }
 
 func (d *PostgreSQL) Close() {
-	if err := d.DB.Close(); err != nil {
+	if err := d.Client.Close(); err != nil {
 		log.Println("Erro ao fechar conexão com o banco:", err)
+	} else {
+		log.Println("Conexão com o banco fechada.")
 	}
 }

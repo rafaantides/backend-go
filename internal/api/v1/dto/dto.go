@@ -29,9 +29,10 @@ type DebtsResponse struct {
 	// Nome da categoria
 	Category *string `json:"category"`
 	// ID do status
-	StatusID uuid.UUID `json:"status_id"`
+	// TODO: ver como manter obrigatorio
+	StatusID *uuid.UUID `json:"status_id"`
 	// Nome do status
-	Status string `json:"status"`
+	Status *string `json:"status"`
 	// Data de criação do débito
 	CreatedAt string `json:"created_at"`
 	// Data da última atualização do débito

@@ -14,7 +14,8 @@ type Debt struct {
 	Amount       float64    `json:"amount"`
 	PurchaseDate time.Time  `json:"purchase_date"`
 	DueDate      time.Time  `json:"due_date"`
-	StatusID     uuid.UUID  `json:"status_id"`
+	// TODO: ver como deixar isso daqui obrigatorio
+	StatusID     *uuid.UUID  `json:"status_id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
