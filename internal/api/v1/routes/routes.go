@@ -12,7 +12,6 @@ func RegisterDocsRoutes(router *gin.RouterGroup) {
 	router.GET("", func(c *gin.Context) {
 		c.File("./docs/v1/docs.html")
 	})
-
 	router.GET("/redoc", func(c *gin.Context) {
 		c.File("./docs/v1/redoc.html")
 	})
@@ -26,20 +25,20 @@ func RegisterDocsRoutes(router *gin.RouterGroup) {
 }
 
 func RegisterDebtRoutes(router *gin.RouterGroup, handler *handlers.DebtHandler) {
-	// router.POST("", handler.CreateDebtHandler)
-	// router.GET("", handler.ListDebtsHandler)
+	router.POST("", handler.CreateDebtHandler)
+	router.GET("", handler.ListDebtsHandler)
 	router.GET("/:id", handler.GetDebtByIDHandler)
-	// router.PUT("/:id", handler.UpdateDebtHandler)
-	// router.DELETE("/:id", handler.DeleteDebtHandler)
+	router.PUT("/:id", handler.UpdateDebtHandler)
+	router.DELETE("/:id", handler.DeleteDebtHandler)
 }
 
-// func RegisterInvoiceRoutes(router *gin.RouterGroup, handler *handlers.InvoiceHandler) {
-// 	router.POST("", handler.CreateInvoiceHandler)
-// 	router.GET("", handler.ListInvoicesHandler)
-// 	router.GET("/:id", handler.GetInvoiceByIDHandler)
-// 	router.PUT("/:id", handler.UpdateInvoiceHandler)
-// 	router.DELETE("/:id", handler.DeleteInvoiceHandler)
-// }
+func RegisterInvoiceRoutes(router *gin.RouterGroup, handler *handlers.InvoiceHandler) {
+	router.POST("", handler.CreateInvoiceHandler)
+	router.GET("", handler.ListInvoicesHandler)
+	router.GET("/:id", handler.GetInvoiceByIDHandler)
+	router.PUT("/:id", handler.UpdateInvoiceHandler)
+	router.DELETE("/:id", handler.DeleteInvoiceHandler)
+}
 
 func RegisterCategoryRoutes(router *gin.RouterGroup, handler *handlers.CategoryHandler) {
 	router.POST("", handler.CreateCategoryHandler)
@@ -49,7 +48,7 @@ func RegisterCategoryRoutes(router *gin.RouterGroup, handler *handlers.CategoryH
 	router.DELETE("/:id", handler.DeleteCategoryHandler)
 }
 
-// func RegisterPaymentStatusRoutes(router *gin.RouterGroup, handler *handlers.PaymentStatusHandler) {
-// 	// TODO: continuar aqui
-// 	router.GET("/:id", handler.GetPaymentStatusByIDHandler)
-// }
+func RegisterPaymentStatusRoutes(router *gin.RouterGroup, handler *handlers.PaymentStatusHandler) {
+	// TODO: continuar aqui
+	router.GET("/:id", handler.GetPaymentStatusByIDHandler)
+}

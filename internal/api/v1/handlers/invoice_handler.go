@@ -31,6 +31,7 @@ func NewInvoiceHandler(service *services.InvoiceService) *InvoiceHandler {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [post]
 func (h *InvoiceHandler) CreateInvoiceHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	var req dto.InvoiceRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -44,7 +45,7 @@ func (h *InvoiceHandler) CreateInvoiceHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.Service.CreateInvoice(input)
+	data, err := h.Service.CreateInvoice(ctx, input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
@@ -65,13 +66,14 @@ func (h *InvoiceHandler) CreateInvoiceHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [get]
 func (h *InvoiceHandler) GetInvoiceByIDHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := h.Service.GetInvoiceByID(*id)
+	data, err := h.Service.GetInvoiceByID(ctx, *id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -103,6 +105,7 @@ func (h *InvoiceHandler) GetInvoiceByIDHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices [get]
 func (h *InvoiceHandler) ListInvoicesHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	var flt dto.InvoiceFilters
 	if err := c.ShouldBindQuery(&flt); err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -132,7 +135,7 @@ func (h *InvoiceHandler) ListInvoicesHandler(c *gin.Context) {
 		return
 	}
 
-	response, total, err := h.Service.ListInvoices(flt, pgn)
+	response, total, err := h.Service.ListInvoices(ctx,flt, pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -157,6 +160,7 @@ func (h *InvoiceHandler) ListInvoicesHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [put]
 func (h *InvoiceHandler) UpdateInvoiceHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -175,7 +179,7 @@ func (h *InvoiceHandler) UpdateInvoiceHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.Service.UpdateInvoice(input)
+	data, err := h.Service.UpdateInvoice(ctx, input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -196,13 +200,14 @@ func (h *InvoiceHandler) UpdateInvoiceHandler(c *gin.Context) {
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /invoices/{id} [delete]
 func (h *InvoiceHandler) DeleteInvoiceHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = h.Service.DeleteInvoiceByID(*id)
+	err = h.Service.DeleteInvoiceByID(ctx, *id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return

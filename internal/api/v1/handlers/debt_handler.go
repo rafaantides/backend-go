@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"backend-go/internal/api/errs"
-	// "backend-go/internal/api/v1/dto"
+	"backend-go/internal/api/v1/dto"
 	"backend-go/internal/api/v1/services"
-	// "backend-go/pkg/pagination"
+	"backend-go/pkg/pagination"
 	"backend-go/pkg/utils"
 	"errors"
 	"net/http"
@@ -30,28 +30,29 @@ func NewDebtHandler(service *services.DebtService) *DebtHandler {
 // @Failure 400 {object} errs.ErrorResponse "Requisição inválida"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts [post]
-// func (h *DebtHandler) CreateDebtHandler(c *gin.Context) {
-// 	var req dto.DebtRequest
+func (h *DebtHandler) CreateDebtHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	var req dto.DebtRequest
 
-// 	if err := c.ShouldBindJSON(&req); err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	input, err := h.Service.ParseDebt(req)
-// 	if err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+	input, err := h.Service.ParseDebt(ctx, req)
+	if err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	newDebt, err := h.Service.CreateDebt(input)
-// 	if err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
-// 		return
-// 	}
+	newDebt, err := h.Service.CreateDebt(ctx, input)
+	if err != nil {
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
+		return
+	}
 
-// 	c.JSON(http.StatusCreated, newDebt)
-// }
+	c.JSON(http.StatusCreated, newDebt)
+}
 
 // @Summary Buscar débito por ID
 // @Description Retorna um débito pelo ID fornecido na URL
@@ -106,49 +107,50 @@ func (h *DebtHandler) GetDebtByIDHandler(c *gin.Context) {
 // @Failure 400 {object} errs.ErrorResponse "Parâmetros inválidos"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts [get]
-// func (h *DebtHandler) ListDebtsHandler(c *gin.Context) {
-// 	var flt dto.DebtFilters
-// 	if err := c.ShouldBindQuery(&flt); err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+func (h *DebtHandler) ListDebtsHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	var flt dto.DebtFilters
+	if err := c.ShouldBindQuery(&flt); err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	pgn, err := pagination.NewPagination(c)
+	pgn, err := pagination.NewPagination(c)
 
-// 	if err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+	if err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	validColumns := map[string]bool{
-// 		"id":            true,
-// 		"invoice_id":    true,
-// 		"title":         true,
-// 		"category_id":   true,
-// 		"amount":        true,
-// 		"purchase_date": true,
-// 		"due_date":      true,
-// 		"status_id":     true,
-// 		"created_at":    true,
-// 		"updated_at":    true,
-// 	}
+	validColumns := map[string]bool{
+		"id":            true,
+		"invoice_id":    true,
+		"title":         true,
+		"category_id":   true,
+		"amount":        true,
+		"purchase_date": true,
+		"due_date":      true,
+		"status_id":     true,
+		"created_at":    true,
+		"updated_at":    true,
+	}
 
-// 	if err := pgn.ValidateOrderBy("purchase_date", validColumns); err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+	if err := pgn.ValidateOrderBy("purchase_date", validColumns); err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	response, total, err := h.Service.ListDebts(flt, pgn)
+	response, total, err := h.Service.ListDebts(ctx, flt, pgn)
 
-// 	if err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
-// 		return
-// 	}
+	if err != nil {
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
+		return
+	}
 
-// 	pgn.SetPaginationHeaders(c, total)
+	pgn.SetPaginationHeaders(c, total)
 
-// 	c.JSON(http.StatusOK, response)
-// }
+	c.JSON(http.StatusOK, response)
+}
 
 // @Summary Atualizar um débito
 // @Description Atualiza um débito existente com os novos dados fornecidos no corpo da requisição
@@ -162,43 +164,44 @@ func (h *DebtHandler) GetDebtByIDHandler(c *gin.Context) {
 // @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [put]
-// func (h *DebtHandler) UpdateDebtHandler(c *gin.Context) {
-// 	id, err := utils.ToUUIDPointer(c.Param("id"))
-// 	if err != nil || id == nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+func (h *DebtHandler) UpdateDebtHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	_, err = h.Service.GetDebtByID(*id)
-// 	if err != nil {
-// 		if errors.Is(err, errs.ErrNotFound) {
-// 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
-// 			return
-// 		}
-// 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
-// 		return
-// 	}
+	_, err = h.Service.GetDebtByID(ctx, *id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			c.Error(errs.NewAPIError(http.StatusNotFound, err))
+			return
+		}
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
+		return
+	}
 
-// 	var req dto.DebtRequest
-// 	if err := c.ShouldBindJSON(&req); err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+	var req dto.DebtRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	input, err := h.Service.ParseDebt(req)
-// 	if err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+	input, err := h.Service.ParseDebt(ctx, req)
+	if err != nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	data, err := h.Service.UpdateDebt(input)
-// 	if err != nil {
-// 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
-// 		return
-// 	}
+	data, err := h.Service.UpdateDebt(ctx, input)
+	if err != nil {
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
+		return
+	}
 
-// 	c.JSON(http.StatusOK, data)
-// }
+	c.JSON(http.StatusOK, data)
+}
 
 // @Summary Deletar um débito
 // @Description Remove um débito pelo ID fornecido
@@ -211,23 +214,24 @@ func (h *DebtHandler) GetDebtByIDHandler(c *gin.Context) {
 // @Failure 404 {object} errs.ErrorResponse "Registro não encontrado"
 // @Failure 500 {object} errs.ErrorResponse "Erro interno"
 // @Router /debts/{id} [delete]
-// func (h *DebtHandler) DeleteDebtHandler(c *gin.Context) {
-// 	id, err := utils.ToUUIDPointer(c.Param("id"))
-// 	if err != nil || id == nil {
-// 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
-// 		return
-// 	}
+func (h *DebtHandler) DeleteDebtHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, err := utils.ToUUIDPointer(c.Param("id"))
+	if err != nil || id == nil {
+		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
+		return
+	}
 
-// 	err = h.Service.DeleteDebtByID(*id)
-// 	if err != nil {
-// 		if errors.Is(err, errs.ErrNotFound) {
-// 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
-// 			return
-// 		}
+	err = h.Service.DeleteDebtByID(ctx, *id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			c.Error(errs.NewAPIError(http.StatusNotFound, err))
+			return
+		}
 
-// 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
-// 		return
-// 	}
+		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
+		return
+	}
 
-// 	c.JSON(http.StatusNoContent, nil)
-// }
+	c.JSON(http.StatusNoContent, nil)
+}

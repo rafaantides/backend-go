@@ -5,6 +5,7 @@ import (
 	"backend-go/internal/api/v1/dto"
 	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/pagination"
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (d *PostgreSQL) GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
+func (d *PostgreSQL) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*models.Invoice, error) {
 	row := d.DB.QueryRow(`SELECT * FROM invoices WHERE id = $1`, id)
 	data, err := newInvoiceResponse(row)
 	if err != nil {
@@ -25,7 +26,7 @@ func (d *PostgreSQL) GetInvoiceByID(id uuid.UUID) (*models.Invoice, error) {
 	return &data, nil
 }
 
-func (d *PostgreSQL) DeleteInvoiceByID(id uuid.UUID) error {
+func (d *PostgreSQL) DeleteInvoiceByID(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM invoices WHERE id = $1`
 	result, err := d.DB.Exec(query, id)
 	if err != nil {
@@ -42,7 +43,7 @@ func (d *PostgreSQL) DeleteInvoiceByID(id uuid.UUID) error {
 	return nil
 }
 
-func (d *PostgreSQL) InsertInvoice(input models.Invoice) (models.Invoice, error) {
+func (d *PostgreSQL) InsertInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
 	query := `INSERT INTO debts (title, amount, issue_date, due_date)
 			  VALUES ($1, $2, $3, $4)
 			  RETURNING *`
@@ -55,7 +56,7 @@ func (d *PostgreSQL) InsertInvoice(input models.Invoice) (models.Invoice, error)
 	return data, nil
 }
 
-func (d *PostgreSQL) UpdateInvoice(input models.Invoice) (models.Invoice, error) {
+func (d *PostgreSQL) UpdateInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
 	query := `
 		UPDATE invoices
 		SET title = $1, amount = $2, issue_date = $3, due_date = $4, status_id = $5
@@ -70,7 +71,7 @@ func (d *PostgreSQL) UpdateInvoice(input models.Invoice) (models.Invoice, error)
 	return data, nil
 }
 
-func (d *PostgreSQL) ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
+func (d *PostgreSQL) ListInvoices(ctx context.Context, flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
 	query := `
         SELECT
             i.id,
@@ -102,7 +103,7 @@ func (d *PostgreSQL) ListInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagina
 	return newInvoicesResponse(rows)
 }
 
-func (d *PostgreSQL) CountInvoices(flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
+func (d *PostgreSQL) CountInvoices(ctx context.Context, flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
 	query := "SELECT COUNT(*) FROM invoices i LEFT JOIN payment_status s ON i.status_id = s.id"
 	filterQuery, args := buildInvoiceFilters(flt, pgn)
 	query += filterQuery

@@ -21,6 +21,7 @@ func NewPaymentStatusHandler(service *services.PaymentStatusService) *PaymentSta
 }
 
 func (h *PaymentStatusHandler) CreatePaymentStatusHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	var req dto.PaymentStatusRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -34,7 +35,7 @@ func (h *PaymentStatusHandler) CreatePaymentStatusHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.Service.CreatePaymentStatus(input)
+	data, err := h.Service.CreatePaymentStatus(ctx, input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
@@ -44,13 +45,14 @@ func (h *PaymentStatusHandler) CreatePaymentStatusHandler(c *gin.Context) {
 }
 
 func (h *PaymentStatusHandler) GetPaymentStatusByIDHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := h.Service.GetPaymentStatusByID(*id)
+	data, err := h.Service.GetPaymentStatusByID(ctx, *id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -64,6 +66,7 @@ func (h *PaymentStatusHandler) GetPaymentStatusByIDHandler(c *gin.Context) {
 }
 
 func (h *PaymentStatusHandler) ListPaymentStatussHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
@@ -82,7 +85,7 @@ func (h *PaymentStatusHandler) ListPaymentStatussHandler(c *gin.Context) {
 		return
 	}
 
-	response, total, err := h.Service.ListPaymentStatus(pgn)
+	response, total, err := h.Service.ListPaymentStatus(ctx, pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -95,6 +98,7 @@ func (h *PaymentStatusHandler) ListPaymentStatussHandler(c *gin.Context) {
 }
 
 func (h *PaymentStatusHandler) UpdatePaymentStatusHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -113,7 +117,7 @@ func (h *PaymentStatusHandler) UpdatePaymentStatusHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.Service.UpdatePaymentStatus(input)
+	data, err := h.Service.UpdatePaymentStatus(ctx, input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -123,13 +127,14 @@ func (h *PaymentStatusHandler) UpdatePaymentStatusHandler(c *gin.Context) {
 }
 
 func (h *PaymentStatusHandler) DeletePaymentStatusHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = h.Service.DeletePaymentStatusByID(*id)
+	err = h.Service.DeletePaymentStatusByID(ctx, *id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return

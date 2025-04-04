@@ -17,7 +17,6 @@ type PostgreSQL struct {
 	Client *ent.Client
 }
 
-// func NewPostgreSQL(dsn string) (interfaces.Database, error) {
 func NewPostgreSQL(dsn string) (*PostgreSQL, error) {
 	drv, err := sql.Open(dialect.Postgres, dsn)
 	if err != nil {

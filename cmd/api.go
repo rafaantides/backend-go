@@ -5,10 +5,10 @@ import (
 	"backend-go/internal/api/v1/handlers"
 	queue "backend-go/internal/api/v1/queue/interfaces"
 	"backend-go/internal/api/v1/queue/rabbitmq"
+	repository "backend-go/internal/api/v1/repository/interfaces"
 	"backend-go/internal/api/v1/repository/postgresql"
 	"backend-go/internal/api/v1/routes"
 	"backend-go/internal/api/v1/services"
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -51,8 +51,6 @@ func startAPIServer() {
 	db := connectDatabase()
 	defer db.Close()
 
-	// runMigrations(db)
-
 	mq := connectQueue()
 	defer mq.Close()
 
@@ -65,7 +63,6 @@ func startAPIServer() {
 	r.Run(":" + apiPort)
 }
 
-// func connectDatabase() repository.Database {
 func connectDatabase() *postgresql.PostgreSQL {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -97,20 +94,18 @@ func connectQueue() queue.MessageQueue {
 
 }
 
-// func setupRouter(db repository.Database, mq queue.MessageQueue) *gin.Engine {
-func setupRouter(db *postgresql.PostgreSQL, mq queue.MessageQueue) *gin.Engine {
-	// Criar services e handlers
+func setupRouter(db repository.Database, mq queue.MessageQueue) *gin.Engine {
 	debtService := services.NewDebtService(db, mq)
 	debtHandler := handlers.NewDebtHandler(debtService)
 
-	// invoiceService := services.NewInvoiceService(db)
-	// invoiceHandler := handlers.NewInvoiceHandler(invoiceService)
+	invoiceService := services.NewInvoiceService(db)
+	invoiceHandler := handlers.NewInvoiceHandler(invoiceService)
 
 	categoryService := services.NewCategoryService(db)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
-	// paymentStatusService := services.NewPaymentStatusService(db)
-	// paymentStatusHandler := handlers.NewPaymentStatusHandler(paymentStatusService)
+	paymentStatusService := services.NewPaymentStatusService(db)
+	paymentStatusHandler := handlers.NewPaymentStatusHandler(paymentStatusService)
 
 	r := gin.Default()
 	v1 := r.Group("/api/v1")
@@ -121,22 +116,12 @@ func setupRouter(db *postgresql.PostgreSQL, mq queue.MessageQueue) *gin.Engine {
 	v1.Use(middlewares.UUIDMiddleware())
 	v1.Use(middlewares.ErrorMiddleware())
 
-	// Registrar rotas
 	r.Static("/static", "./static")
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(v1.Group("/debts"), debtHandler)
-	// routes.RegisterInvoiceRoutes(v1.Group("/invoices"), invoiceHandler)
+	routes.RegisterInvoiceRoutes(v1.Group("/invoices"), invoiceHandler)
 	routes.RegisterCategoryRoutes(v1.Group("/categories"), categoryHandler)
-	// routes.RegisterPaymentStatusRoutes(v1.Group("/payment_status"), paymentStatusHandler)
+	routes.RegisterPaymentStatusRoutes(v1.Group("/payment_status"), paymentStatusHandler)
 
 	return r
-}
-
-func runMigrations(db *postgresql.PostgreSQL) {
-	ctx := context.Background()
-	err := db.Client.Schema.Create(ctx)
-	if err != nil {
-		log.Fatalf("Falha ao rodar as migrations: %v", err)
-	}
-	fmt.Println("Migrations aplicadas com sucesso!")
 }

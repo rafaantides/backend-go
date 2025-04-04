@@ -18,10 +18,10 @@ func NewCategoryService(db repository.Database) *CategoryService {
 	return &CategoryService{DB: db}
 }
 
-func (s *CategoryService) ParseCategory(categoryReq dto.CategoryRequest) (models.Category, error) {
+func (s *CategoryService) ParseCategory(req dto.CategoryRequest) (models.Category, error) {
 	return models.Category{
-		Name:        categoryReq.Name,
-		Description: &categoryReq.Description,
+		Name:        req.Name,
+		Description: &req.Description,
 	}, nil
 
 }
