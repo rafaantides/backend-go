@@ -15,24 +15,18 @@ const (
 	Label = "debt"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldInvoiceID holds the string denoting the invoice_id field in the database.
-	FieldInvoiceID = "invoice_id"
-	// FieldTitle holds the string denoting the title field in the database.
-	FieldTitle = "title"
-	// FieldCategoryID holds the string denoting the category_id field in the database.
-	FieldCategoryID = "category_id"
-	// FieldAmount holds the string denoting the amount field in the database.
-	FieldAmount = "amount"
-	// FieldPurchaseDate holds the string denoting the purchase_date field in the database.
-	FieldPurchaseDate = "purchase_date"
-	// FieldDueDate holds the string denoting the due_date field in the database.
-	FieldDueDate = "due_date"
-	// FieldStatusID holds the string denoting the status_id field in the database.
-	FieldStatusID = "status_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldAmount holds the string denoting the amount field in the database.
+	FieldAmount = "amount"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldPurchaseDate holds the string denoting the purchase_date field in the database.
+	FieldPurchaseDate = "purchase_date"
+	// FieldDueDate holds the string denoting the due_date field in the database.
+	FieldDueDate = "due_date"
 	// EdgeInvoice holds the string denoting the invoice edge name in mutations.
 	EdgeInvoice = "invoice"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
@@ -67,21 +61,31 @@ const (
 // Columns holds all SQL columns for debt fields.
 var Columns = []string{
 	FieldID,
-	FieldInvoiceID,
-	FieldTitle,
-	FieldCategoryID,
-	FieldAmount,
-	FieldPurchaseDate,
-	FieldDueDate,
-	FieldStatusID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldAmount,
+	FieldTitle,
+	FieldPurchaseDate,
+	FieldDueDate,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "debts"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"invoice_id",
+	"category_id",
+	"status_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -95,6 +99,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	TitleValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -107,24 +113,24 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByInvoiceID orders the results by the invoice_id field.
-func ByInvoiceID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldInvoiceID, opts...).ToFunc()
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }
 
-// ByTitle orders the results by the title field.
-func ByTitle(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTitle, opts...).ToFunc()
-}
-
-// ByCategoryID orders the results by the category_id field.
-func ByCategoryID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCategoryID, opts...).ToFunc()
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByAmount orders the results by the amount field.
 func ByAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAmount, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
 // ByPurchaseDate orders the results by the purchase_date field.
@@ -135,21 +141,6 @@ func ByPurchaseDate(opts ...sql.OrderTermOption) OrderOption {
 // ByDueDate orders the results by the due_date field.
 func ByDueDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDueDate, opts...).ToFunc()
-}
-
-// ByStatusID orders the results by the status_id field.
-func ByStatusID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatusID, opts...).ToFunc()
-}
-
-// ByCreatedAt orders the results by the created_at field.
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
-}
-
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByInvoiceField orders the results by invoice field.

@@ -263,12 +263,12 @@ func (psq *PaymentStatusQuery) Clone() *PaymentStatusQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.PaymentStatus.Query().
-//		GroupBy(paymentstatus.FieldName).
+//		GroupBy(paymentstatus.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (psq *PaymentStatusQuery) GroupBy(field string, fields ...string) *PaymentStatusGroupBy {
@@ -286,11 +286,11 @@ func (psq *PaymentStatusQuery) GroupBy(field string, fields ...string) *PaymentS
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.PaymentStatus.Query().
-//		Select(paymentstatus.FieldName).
+//		Select(paymentstatus.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (psq *PaymentStatusQuery) Select(fields ...string) *PaymentStatusSelect {
 	psq.ctx.Fields = append(psq.ctx.Fields, fields...)

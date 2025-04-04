@@ -56,31 +56,6 @@ func IDLTE(id uuid.UUID) predicate.Invoice {
 	return predicate.Invoice(sql.FieldLTE(FieldID, id))
 }
 
-// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
-func Title(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldTitle, v))
-}
-
-// Amount applies equality check predicate on the "amount" field. It's identical to AmountEQ.
-func Amount(v float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldAmount, v))
-}
-
-// IssueDate applies equality check predicate on the "issue_date" field. It's identical to IssueDateEQ.
-func IssueDate(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldIssueDate, v))
-}
-
-// DueDate applies equality check predicate on the "due_date" field. It's identical to DueDateEQ.
-func DueDate(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldDueDate, v))
-}
-
-// StatusID applies equality check predicate on the "status_id" field. It's identical to StatusIDEQ.
-func StatusID(v uuid.UUID) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldStatusID, v))
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Invoice {
 	return predicate.Invoice(sql.FieldEQ(FieldCreatedAt, v))
@@ -91,219 +66,24 @@ func UpdatedAt(v time.Time) predicate.Invoice {
 	return predicate.Invoice(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// TitleEQ applies the EQ predicate on the "title" field.
-func TitleEQ(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldTitle, v))
-}
-
-// TitleNEQ applies the NEQ predicate on the "title" field.
-func TitleNEQ(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNEQ(FieldTitle, v))
-}
-
-// TitleIn applies the In predicate on the "title" field.
-func TitleIn(vs ...string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldIn(FieldTitle, vs...))
-}
-
-// TitleNotIn applies the NotIn predicate on the "title" field.
-func TitleNotIn(vs ...string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNotIn(FieldTitle, vs...))
-}
-
-// TitleGT applies the GT predicate on the "title" field.
-func TitleGT(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGT(FieldTitle, v))
-}
-
-// TitleGTE applies the GTE predicate on the "title" field.
-func TitleGTE(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGTE(FieldTitle, v))
-}
-
-// TitleLT applies the LT predicate on the "title" field.
-func TitleLT(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLT(FieldTitle, v))
-}
-
-// TitleLTE applies the LTE predicate on the "title" field.
-func TitleLTE(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLTE(FieldTitle, v))
-}
-
-// TitleContains applies the Contains predicate on the "title" field.
-func TitleContains(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldContains(FieldTitle, v))
-}
-
-// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
-func TitleHasPrefix(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldHasPrefix(FieldTitle, v))
-}
-
-// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
-func TitleHasSuffix(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldHasSuffix(FieldTitle, v))
-}
-
-// TitleEqualFold applies the EqualFold predicate on the "title" field.
-func TitleEqualFold(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEqualFold(FieldTitle, v))
-}
-
-// TitleContainsFold applies the ContainsFold predicate on the "title" field.
-func TitleContainsFold(v string) predicate.Invoice {
-	return predicate.Invoice(sql.FieldContainsFold(FieldTitle, v))
-}
-
-// AmountEQ applies the EQ predicate on the "amount" field.
-func AmountEQ(v float64) predicate.Invoice {
+// Amount applies equality check predicate on the "amount" field. It's identical to AmountEQ.
+func Amount(v float64) predicate.Invoice {
 	return predicate.Invoice(sql.FieldEQ(FieldAmount, v))
 }
 
-// AmountNEQ applies the NEQ predicate on the "amount" field.
-func AmountNEQ(v float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNEQ(FieldAmount, v))
+// Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
+func Title(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldEQ(FieldTitle, v))
 }
 
-// AmountIn applies the In predicate on the "amount" field.
-func AmountIn(vs ...float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldIn(FieldAmount, vs...))
-}
-
-// AmountNotIn applies the NotIn predicate on the "amount" field.
-func AmountNotIn(vs ...float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNotIn(FieldAmount, vs...))
-}
-
-// AmountGT applies the GT predicate on the "amount" field.
-func AmountGT(v float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGT(FieldAmount, v))
-}
-
-// AmountGTE applies the GTE predicate on the "amount" field.
-func AmountGTE(v float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGTE(FieldAmount, v))
-}
-
-// AmountLT applies the LT predicate on the "amount" field.
-func AmountLT(v float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLT(FieldAmount, v))
-}
-
-// AmountLTE applies the LTE predicate on the "amount" field.
-func AmountLTE(v float64) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLTE(FieldAmount, v))
-}
-
-// IssueDateEQ applies the EQ predicate on the "issue_date" field.
-func IssueDateEQ(v time.Time) predicate.Invoice {
+// IssueDate applies equality check predicate on the "issue_date" field. It's identical to IssueDateEQ.
+func IssueDate(v time.Time) predicate.Invoice {
 	return predicate.Invoice(sql.FieldEQ(FieldIssueDate, v))
 }
 
-// IssueDateNEQ applies the NEQ predicate on the "issue_date" field.
-func IssueDateNEQ(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNEQ(FieldIssueDate, v))
-}
-
-// IssueDateIn applies the In predicate on the "issue_date" field.
-func IssueDateIn(vs ...time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldIn(FieldIssueDate, vs...))
-}
-
-// IssueDateNotIn applies the NotIn predicate on the "issue_date" field.
-func IssueDateNotIn(vs ...time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNotIn(FieldIssueDate, vs...))
-}
-
-// IssueDateGT applies the GT predicate on the "issue_date" field.
-func IssueDateGT(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGT(FieldIssueDate, v))
-}
-
-// IssueDateGTE applies the GTE predicate on the "issue_date" field.
-func IssueDateGTE(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGTE(FieldIssueDate, v))
-}
-
-// IssueDateLT applies the LT predicate on the "issue_date" field.
-func IssueDateLT(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLT(FieldIssueDate, v))
-}
-
-// IssueDateLTE applies the LTE predicate on the "issue_date" field.
-func IssueDateLTE(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLTE(FieldIssueDate, v))
-}
-
-// DueDateEQ applies the EQ predicate on the "due_date" field.
-func DueDateEQ(v time.Time) predicate.Invoice {
+// DueDate applies equality check predicate on the "due_date" field. It's identical to DueDateEQ.
+func DueDate(v time.Time) predicate.Invoice {
 	return predicate.Invoice(sql.FieldEQ(FieldDueDate, v))
-}
-
-// DueDateNEQ applies the NEQ predicate on the "due_date" field.
-func DueDateNEQ(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNEQ(FieldDueDate, v))
-}
-
-// DueDateIn applies the In predicate on the "due_date" field.
-func DueDateIn(vs ...time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldIn(FieldDueDate, vs...))
-}
-
-// DueDateNotIn applies the NotIn predicate on the "due_date" field.
-func DueDateNotIn(vs ...time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNotIn(FieldDueDate, vs...))
-}
-
-// DueDateGT applies the GT predicate on the "due_date" field.
-func DueDateGT(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGT(FieldDueDate, v))
-}
-
-// DueDateGTE applies the GTE predicate on the "due_date" field.
-func DueDateGTE(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldGTE(FieldDueDate, v))
-}
-
-// DueDateLT applies the LT predicate on the "due_date" field.
-func DueDateLT(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLT(FieldDueDate, v))
-}
-
-// DueDateLTE applies the LTE predicate on the "due_date" field.
-func DueDateLTE(v time.Time) predicate.Invoice {
-	return predicate.Invoice(sql.FieldLTE(FieldDueDate, v))
-}
-
-// StatusIDEQ applies the EQ predicate on the "status_id" field.
-func StatusIDEQ(v uuid.UUID) predicate.Invoice {
-	return predicate.Invoice(sql.FieldEQ(FieldStatusID, v))
-}
-
-// StatusIDNEQ applies the NEQ predicate on the "status_id" field.
-func StatusIDNEQ(v uuid.UUID) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNEQ(FieldStatusID, v))
-}
-
-// StatusIDIn applies the In predicate on the "status_id" field.
-func StatusIDIn(vs ...uuid.UUID) predicate.Invoice {
-	return predicate.Invoice(sql.FieldIn(FieldStatusID, vs...))
-}
-
-// StatusIDNotIn applies the NotIn predicate on the "status_id" field.
-func StatusIDNotIn(vs ...uuid.UUID) predicate.Invoice {
-	return predicate.Invoice(sql.FieldNotIn(FieldStatusID, vs...))
-}
-
-// StatusIDIsNil applies the IsNil predicate on the "status_id" field.
-func StatusIDIsNil() predicate.Invoice {
-	return predicate.Invoice(sql.FieldIsNull(FieldStatusID))
-}
-
-// StatusIDNotNil applies the NotNil predicate on the "status_id" field.
-func StatusIDNotNil() predicate.Invoice {
-	return predicate.Invoice(sql.FieldNotNull(FieldStatusID))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -384,6 +164,191 @@ func UpdatedAtLT(v time.Time) predicate.Invoice {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Invoice {
 	return predicate.Invoice(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// AmountEQ applies the EQ predicate on the "amount" field.
+func AmountEQ(v float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldEQ(FieldAmount, v))
+}
+
+// AmountNEQ applies the NEQ predicate on the "amount" field.
+func AmountNEQ(v float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNEQ(FieldAmount, v))
+}
+
+// AmountIn applies the In predicate on the "amount" field.
+func AmountIn(vs ...float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldIn(FieldAmount, vs...))
+}
+
+// AmountNotIn applies the NotIn predicate on the "amount" field.
+func AmountNotIn(vs ...float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNotIn(FieldAmount, vs...))
+}
+
+// AmountGT applies the GT predicate on the "amount" field.
+func AmountGT(v float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGT(FieldAmount, v))
+}
+
+// AmountGTE applies the GTE predicate on the "amount" field.
+func AmountGTE(v float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGTE(FieldAmount, v))
+}
+
+// AmountLT applies the LT predicate on the "amount" field.
+func AmountLT(v float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLT(FieldAmount, v))
+}
+
+// AmountLTE applies the LTE predicate on the "amount" field.
+func AmountLTE(v float64) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLTE(FieldAmount, v))
+}
+
+// TitleEQ applies the EQ predicate on the "title" field.
+func TitleEQ(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldEQ(FieldTitle, v))
+}
+
+// TitleNEQ applies the NEQ predicate on the "title" field.
+func TitleNEQ(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNEQ(FieldTitle, v))
+}
+
+// TitleIn applies the In predicate on the "title" field.
+func TitleIn(vs ...string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldIn(FieldTitle, vs...))
+}
+
+// TitleNotIn applies the NotIn predicate on the "title" field.
+func TitleNotIn(vs ...string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNotIn(FieldTitle, vs...))
+}
+
+// TitleGT applies the GT predicate on the "title" field.
+func TitleGT(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGT(FieldTitle, v))
+}
+
+// TitleGTE applies the GTE predicate on the "title" field.
+func TitleGTE(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGTE(FieldTitle, v))
+}
+
+// TitleLT applies the LT predicate on the "title" field.
+func TitleLT(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLT(FieldTitle, v))
+}
+
+// TitleLTE applies the LTE predicate on the "title" field.
+func TitleLTE(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLTE(FieldTitle, v))
+}
+
+// TitleContains applies the Contains predicate on the "title" field.
+func TitleContains(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldContains(FieldTitle, v))
+}
+
+// TitleHasPrefix applies the HasPrefix predicate on the "title" field.
+func TitleHasPrefix(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldHasPrefix(FieldTitle, v))
+}
+
+// TitleHasSuffix applies the HasSuffix predicate on the "title" field.
+func TitleHasSuffix(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldHasSuffix(FieldTitle, v))
+}
+
+// TitleEqualFold applies the EqualFold predicate on the "title" field.
+func TitleEqualFold(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldEqualFold(FieldTitle, v))
+}
+
+// TitleContainsFold applies the ContainsFold predicate on the "title" field.
+func TitleContainsFold(v string) predicate.Invoice {
+	return predicate.Invoice(sql.FieldContainsFold(FieldTitle, v))
+}
+
+// IssueDateEQ applies the EQ predicate on the "issue_date" field.
+func IssueDateEQ(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldEQ(FieldIssueDate, v))
+}
+
+// IssueDateNEQ applies the NEQ predicate on the "issue_date" field.
+func IssueDateNEQ(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNEQ(FieldIssueDate, v))
+}
+
+// IssueDateIn applies the In predicate on the "issue_date" field.
+func IssueDateIn(vs ...time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldIn(FieldIssueDate, vs...))
+}
+
+// IssueDateNotIn applies the NotIn predicate on the "issue_date" field.
+func IssueDateNotIn(vs ...time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNotIn(FieldIssueDate, vs...))
+}
+
+// IssueDateGT applies the GT predicate on the "issue_date" field.
+func IssueDateGT(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGT(FieldIssueDate, v))
+}
+
+// IssueDateGTE applies the GTE predicate on the "issue_date" field.
+func IssueDateGTE(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGTE(FieldIssueDate, v))
+}
+
+// IssueDateLT applies the LT predicate on the "issue_date" field.
+func IssueDateLT(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLT(FieldIssueDate, v))
+}
+
+// IssueDateLTE applies the LTE predicate on the "issue_date" field.
+func IssueDateLTE(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLTE(FieldIssueDate, v))
+}
+
+// DueDateEQ applies the EQ predicate on the "due_date" field.
+func DueDateEQ(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldEQ(FieldDueDate, v))
+}
+
+// DueDateNEQ applies the NEQ predicate on the "due_date" field.
+func DueDateNEQ(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNEQ(FieldDueDate, v))
+}
+
+// DueDateIn applies the In predicate on the "due_date" field.
+func DueDateIn(vs ...time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldIn(FieldDueDate, vs...))
+}
+
+// DueDateNotIn applies the NotIn predicate on the "due_date" field.
+func DueDateNotIn(vs ...time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldNotIn(FieldDueDate, vs...))
+}
+
+// DueDateGT applies the GT predicate on the "due_date" field.
+func DueDateGT(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGT(FieldDueDate, v))
+}
+
+// DueDateGTE applies the GTE predicate on the "due_date" field.
+func DueDateGTE(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldGTE(FieldDueDate, v))
+}
+
+// DueDateLT applies the LT predicate on the "due_date" field.
+func DueDateLT(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLT(FieldDueDate, v))
+}
+
+// DueDateLTE applies the LTE predicate on the "due_date" field.
+func DueDateLTE(v time.Time) predicate.Invoice {
+	return predicate.Invoice(sql.FieldLTE(FieldDueDate, v))
 }
 
 // HasStatus applies the HasEdge predicate on the "status" edge.

@@ -18,14 +18,14 @@ type PaymentStatus struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Description holds the value of the "description" field.
-	Description *string `json:"description,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description  *string `json:"description,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -61,6 +61,18 @@ func (ps *PaymentStatus) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ps.ID = *value
 			}
+		case paymentstatus.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				ps.CreatedAt = value.Time
+			}
+		case paymentstatus.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				ps.UpdatedAt = value.Time
+			}
 		case paymentstatus.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -73,18 +85,6 @@ func (ps *PaymentStatus) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ps.Description = new(string)
 				*ps.Description = value.String
-			}
-		case paymentstatus.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				ps.CreatedAt = value.Time
-			}
-		case paymentstatus.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				ps.UpdatedAt = value.Time
 			}
 		default:
 			ps.selectValues.Set(columns[i], values[i])
@@ -122,6 +122,12 @@ func (ps *PaymentStatus) String() string {
 	var builder strings.Builder
 	builder.WriteString("PaymentStatus(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ps.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(ps.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(ps.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(ps.Name)
 	builder.WriteString(", ")
@@ -129,12 +135,6 @@ func (ps *PaymentStatus) String() string {
 		builder.WriteString("description=")
 		builder.WriteString(*v)
 	}
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(ps.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(ps.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

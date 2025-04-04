@@ -22,44 +22,6 @@ type InvoiceCreate struct {
 	hooks    []Hook
 }
 
-// SetTitle sets the "title" field.
-func (ic *InvoiceCreate) SetTitle(s string) *InvoiceCreate {
-	ic.mutation.SetTitle(s)
-	return ic
-}
-
-// SetAmount sets the "amount" field.
-func (ic *InvoiceCreate) SetAmount(f float64) *InvoiceCreate {
-	ic.mutation.SetAmount(f)
-	return ic
-}
-
-// SetIssueDate sets the "issue_date" field.
-func (ic *InvoiceCreate) SetIssueDate(t time.Time) *InvoiceCreate {
-	ic.mutation.SetIssueDate(t)
-	return ic
-}
-
-// SetDueDate sets the "due_date" field.
-func (ic *InvoiceCreate) SetDueDate(t time.Time) *InvoiceCreate {
-	ic.mutation.SetDueDate(t)
-	return ic
-}
-
-// SetStatusID sets the "status_id" field.
-func (ic *InvoiceCreate) SetStatusID(u uuid.UUID) *InvoiceCreate {
-	ic.mutation.SetStatusID(u)
-	return ic
-}
-
-// SetNillableStatusID sets the "status_id" field if the given value is not nil.
-func (ic *InvoiceCreate) SetNillableStatusID(u *uuid.UUID) *InvoiceCreate {
-	if u != nil {
-		ic.SetStatusID(*u)
-	}
-	return ic
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (ic *InvoiceCreate) SetCreatedAt(t time.Time) *InvoiceCreate {
 	ic.mutation.SetCreatedAt(t)
@@ -88,6 +50,30 @@ func (ic *InvoiceCreate) SetNillableUpdatedAt(t *time.Time) *InvoiceCreate {
 	return ic
 }
 
+// SetAmount sets the "amount" field.
+func (ic *InvoiceCreate) SetAmount(f float64) *InvoiceCreate {
+	ic.mutation.SetAmount(f)
+	return ic
+}
+
+// SetTitle sets the "title" field.
+func (ic *InvoiceCreate) SetTitle(s string) *InvoiceCreate {
+	ic.mutation.SetTitle(s)
+	return ic
+}
+
+// SetIssueDate sets the "issue_date" field.
+func (ic *InvoiceCreate) SetIssueDate(t time.Time) *InvoiceCreate {
+	ic.mutation.SetIssueDate(t)
+	return ic
+}
+
+// SetDueDate sets the "due_date" field.
+func (ic *InvoiceCreate) SetDueDate(t time.Time) *InvoiceCreate {
+	ic.mutation.SetDueDate(t)
+	return ic
+}
+
 // SetID sets the "id" field.
 func (ic *InvoiceCreate) SetID(u uuid.UUID) *InvoiceCreate {
 	ic.mutation.SetID(u)
@@ -98,6 +84,20 @@ func (ic *InvoiceCreate) SetID(u uuid.UUID) *InvoiceCreate {
 func (ic *InvoiceCreate) SetNillableID(u *uuid.UUID) *InvoiceCreate {
 	if u != nil {
 		ic.SetID(*u)
+	}
+	return ic
+}
+
+// SetStatusID sets the "status" edge to the PaymentStatus entity by ID.
+func (ic *InvoiceCreate) SetStatusID(id uuid.UUID) *InvoiceCreate {
+	ic.mutation.SetStatusID(id)
+	return ic
+}
+
+// SetNillableStatusID sets the "status" edge to the PaymentStatus entity by ID if the given value is not nil.
+func (ic *InvoiceCreate) SetNillableStatusID(id *uuid.UUID) *InvoiceCreate {
+	if id != nil {
+		ic = ic.SetStatusID(*id)
 	}
 	return ic
 }
@@ -158,23 +158,28 @@ func (ic *InvoiceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ic *InvoiceCreate) check() error {
-	if _, ok := ic.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Invoice.title"`)}
+	if _, ok := ic.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Invoice.created_at"`)}
+	}
+	if _, ok := ic.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Invoice.updated_at"`)}
 	}
 	if _, ok := ic.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "Invoice.amount"`)}
+	}
+	if _, ok := ic.mutation.Title(); !ok {
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Invoice.title"`)}
+	}
+	if v, ok := ic.mutation.Title(); ok {
+		if err := invoice.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Invoice.title": %w`, err)}
+		}
 	}
 	if _, ok := ic.mutation.IssueDate(); !ok {
 		return &ValidationError{Name: "issue_date", err: errors.New(`ent: missing required field "Invoice.issue_date"`)}
 	}
 	if _, ok := ic.mutation.DueDate(); !ok {
 		return &ValidationError{Name: "due_date", err: errors.New(`ent: missing required field "Invoice.due_date"`)}
-	}
-	if _, ok := ic.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Invoice.created_at"`)}
-	}
-	if _, ok := ic.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Invoice.updated_at"`)}
 	}
 	return nil
 }
@@ -211,13 +216,21 @@ func (ic *InvoiceCreate) createSpec() (*Invoice, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := ic.mutation.Title(); ok {
-		_spec.SetField(invoice.FieldTitle, field.TypeString, value)
-		_node.Title = value
+	if value, ok := ic.mutation.CreatedAt(); ok {
+		_spec.SetField(invoice.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := ic.mutation.UpdatedAt(); ok {
+		_spec.SetField(invoice.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := ic.mutation.Amount(); ok {
 		_spec.SetField(invoice.FieldAmount, field.TypeFloat64, value)
 		_node.Amount = value
+	}
+	if value, ok := ic.mutation.Title(); ok {
+		_spec.SetField(invoice.FieldTitle, field.TypeString, value)
+		_node.Title = value
 	}
 	if value, ok := ic.mutation.IssueDate(); ok {
 		_spec.SetField(invoice.FieldIssueDate, field.TypeTime, value)
@@ -226,14 +239,6 @@ func (ic *InvoiceCreate) createSpec() (*Invoice, *sqlgraph.CreateSpec) {
 	if value, ok := ic.mutation.DueDate(); ok {
 		_spec.SetField(invoice.FieldDueDate, field.TypeTime, value)
 		_node.DueDate = value
-	}
-	if value, ok := ic.mutation.CreatedAt(); ok {
-		_spec.SetField(invoice.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := ic.mutation.UpdatedAt(); ok {
-		_spec.SetField(invoice.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
 	}
 	if nodes := ic.mutation.StatusIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -249,7 +254,7 @@ func (ic *InvoiceCreate) createSpec() (*Invoice, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.StatusID = &nodes[0]
+		_node.status_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

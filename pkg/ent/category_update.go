@@ -28,6 +28,12 @@ func (cu *CategoryUpdate) Where(ps ...predicate.Category) *CategoryUpdate {
 	return cu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (cu *CategoryUpdate) SetUpdatedAt(t time.Time) *CategoryUpdate {
+	cu.mutation.SetUpdatedAt(t)
+	return cu
+}
+
 // SetName sets the "name" field.
 func (cu *CategoryUpdate) SetName(s string) *CategoryUpdate {
 	cu.mutation.SetName(s)
@@ -59,26 +65,6 @@ func (cu *CategoryUpdate) SetNillableDescription(s *string) *CategoryUpdate {
 // ClearDescription clears the value of the "description" field.
 func (cu *CategoryUpdate) ClearDescription() *CategoryUpdate {
 	cu.mutation.ClearDescription()
-	return cu
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (cu *CategoryUpdate) SetCreatedAt(t time.Time) *CategoryUpdate {
-	cu.mutation.SetCreatedAt(t)
-	return cu
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cu *CategoryUpdate) SetNillableCreatedAt(t *time.Time) *CategoryUpdate {
-	if t != nil {
-		cu.SetCreatedAt(*t)
-	}
-	return cu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (cu *CategoryUpdate) SetUpdatedAt(t time.Time) *CategoryUpdate {
-	cu.mutation.SetUpdatedAt(t)
 	return cu
 }
 
@@ -123,7 +109,20 @@ func (cu *CategoryUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cu *CategoryUpdate) check() error {
+	if v, ok := cu.mutation.Name(); ok {
+		if err := category.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Category.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := cu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(category.Table, category.Columns, sqlgraph.NewFieldSpec(category.FieldID, field.TypeUUID))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -131,6 +130,9 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cu.mutation.UpdatedAt(); ok {
+		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cu.mutation.Name(); ok {
 		_spec.SetField(category.FieldName, field.TypeString, value)
@@ -140,12 +142,6 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.DescriptionCleared() {
 		_spec.ClearField(category.FieldDescription, field.TypeString)
-	}
-	if value, ok := cu.mutation.CreatedAt(); ok {
-		_spec.SetField(category.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := cu.mutation.UpdatedAt(); ok {
-		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -165,6 +161,12 @@ type CategoryUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CategoryMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cuo *CategoryUpdateOne) SetUpdatedAt(t time.Time) *CategoryUpdateOne {
+	cuo.mutation.SetUpdatedAt(t)
+	return cuo
 }
 
 // SetName sets the "name" field.
@@ -198,26 +200,6 @@ func (cuo *CategoryUpdateOne) SetNillableDescription(s *string) *CategoryUpdateO
 // ClearDescription clears the value of the "description" field.
 func (cuo *CategoryUpdateOne) ClearDescription() *CategoryUpdateOne {
 	cuo.mutation.ClearDescription()
-	return cuo
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (cuo *CategoryUpdateOne) SetCreatedAt(t time.Time) *CategoryUpdateOne {
-	cuo.mutation.SetCreatedAt(t)
-	return cuo
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cuo *CategoryUpdateOne) SetNillableCreatedAt(t *time.Time) *CategoryUpdateOne {
-	if t != nil {
-		cuo.SetCreatedAt(*t)
-	}
-	return cuo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (cuo *CategoryUpdateOne) SetUpdatedAt(t time.Time) *CategoryUpdateOne {
-	cuo.mutation.SetUpdatedAt(t)
 	return cuo
 }
 
@@ -275,7 +257,20 @@ func (cuo *CategoryUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cuo *CategoryUpdateOne) check() error {
+	if v, ok := cuo.mutation.Name(); ok {
+		if err := category.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Category.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err error) {
+	if err := cuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(category.Table, category.Columns, sqlgraph.NewFieldSpec(category.FieldID, field.TypeUUID))
 	id, ok := cuo.mutation.ID()
 	if !ok {
@@ -301,6 +296,9 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			}
 		}
 	}
+	if value, ok := cuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := cuo.mutation.Name(); ok {
 		_spec.SetField(category.FieldName, field.TypeString, value)
 	}
@@ -309,12 +307,6 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 	}
 	if cuo.mutation.DescriptionCleared() {
 		_spec.ClearField(category.FieldDescription, field.TypeString)
-	}
-	if value, ok := cuo.mutation.CreatedAt(); ok {
-		_spec.SetField(category.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := cuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)
 	}
 	_node = &Category{config: cuo.config}
 	_spec.Assign = _node.assignValues

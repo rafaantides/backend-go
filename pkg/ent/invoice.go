@@ -19,23 +19,22 @@ type Invoice struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Title holds the value of the "title" field.
-	Title string `json:"title,omitempty"`
-	// Amount holds the value of the "amount" field.
-	Amount float64 `json:"amount,omitempty"`
-	// IssueDate holds the value of the "issue_date" field.
-	IssueDate time.Time `json:"issue_date,omitempty"`
-	// DueDate holds the value of the "due_date" field.
-	DueDate time.Time `json:"due_date,omitempty"`
-	// StatusID holds the value of the "status_id" field.
-	StatusID *uuid.UUID `json:"status_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Amount holds the value of the "amount" field.
+	Amount float64 `json:"amount,omitempty"`
+	// Title holds the value of the "title" field.
+	Title string `json:"title,omitempty"`
+	// IssueDate holds the value of the "issue_date" field.
+	IssueDate time.Time `json:"issue_date,omitempty"`
+	// DueDate holds the value of the "due_date" field.
+	DueDate time.Time `json:"due_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InvoiceQuery when eager-loading is set.
 	Edges        InvoiceEdges `json:"edges"`
+	status_id    *uuid.UUID
 	selectValues sql.SelectValues
 }
 
@@ -64,16 +63,16 @@ func (*Invoice) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case invoice.FieldStatusID:
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case invoice.FieldAmount:
 			values[i] = new(sql.NullFloat64)
 		case invoice.FieldTitle:
 			values[i] = new(sql.NullString)
-		case invoice.FieldIssueDate, invoice.FieldDueDate, invoice.FieldCreatedAt, invoice.FieldUpdatedAt:
+		case invoice.FieldCreatedAt, invoice.FieldUpdatedAt, invoice.FieldIssueDate, invoice.FieldDueDate:
 			values[i] = new(sql.NullTime)
 		case invoice.FieldID:
 			values[i] = new(uuid.UUID)
+		case invoice.ForeignKeys[0]: // status_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -95,17 +94,29 @@ func (i *Invoice) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				i.ID = *value
 			}
-		case invoice.FieldTitle:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field title", values[j])
+		case invoice.FieldCreatedAt:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[j])
 			} else if value.Valid {
-				i.Title = value.String
+				i.CreatedAt = value.Time
+			}
+		case invoice.FieldUpdatedAt:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[j])
+			} else if value.Valid {
+				i.UpdatedAt = value.Time
 			}
 		case invoice.FieldAmount:
 			if value, ok := values[j].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field amount", values[j])
 			} else if value.Valid {
 				i.Amount = value.Float64
+			}
+		case invoice.FieldTitle:
+			if value, ok := values[j].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[j])
+			} else if value.Valid {
+				i.Title = value.String
 			}
 		case invoice.FieldIssueDate:
 			if value, ok := values[j].(*sql.NullTime); !ok {
@@ -119,24 +130,12 @@ func (i *Invoice) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				i.DueDate = value.Time
 			}
-		case invoice.FieldStatusID:
+		case invoice.ForeignKeys[0]:
 			if value, ok := values[j].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field status_id", values[j])
 			} else if value.Valid {
-				i.StatusID = new(uuid.UUID)
-				*i.StatusID = *value.S.(*uuid.UUID)
-			}
-		case invoice.FieldCreatedAt:
-			if value, ok := values[j].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[j])
-			} else if value.Valid {
-				i.CreatedAt = value.Time
-			}
-		case invoice.FieldUpdatedAt:
-			if value, ok := values[j].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[j])
-			} else if value.Valid {
-				i.UpdatedAt = value.Time
+				i.status_id = new(uuid.UUID)
+				*i.status_id = *value.S.(*uuid.UUID)
 			}
 		default:
 			i.selectValues.Set(columns[j], values[j])
@@ -179,28 +178,23 @@ func (i *Invoice) String() string {
 	var builder strings.Builder
 	builder.WriteString("Invoice(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", i.ID))
-	builder.WriteString("title=")
-	builder.WriteString(i.Title)
+	builder.WriteString("created_at=")
+	builder.WriteString(i.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(i.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("amount=")
 	builder.WriteString(fmt.Sprintf("%v", i.Amount))
+	builder.WriteString(", ")
+	builder.WriteString("title=")
+	builder.WriteString(i.Title)
 	builder.WriteString(", ")
 	builder.WriteString("issue_date=")
 	builder.WriteString(i.IssueDate.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("due_date=")
 	builder.WriteString(i.DueDate.Format(time.ANSIC))
-	builder.WriteString(", ")
-	if v := i.StatusID; v != nil {
-		builder.WriteString("status_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(i.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(i.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

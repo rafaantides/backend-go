@@ -11,10 +11,10 @@ var (
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true},
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{
@@ -25,12 +25,12 @@ var (
 	// DebtsColumns holds the columns for the "debts" table.
 	DebtsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "title", Type: field.TypeString},
-		{Name: "amount", Type: field.TypeFloat64},
-		{Name: "purchase_date", Type: field.TypeTime},
-		{Name: "due_date", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(10,2)"}},
+		{Name: "title", Type: field.TypeString, Size: 255},
+		{Name: "purchase_date", Type: field.TypeTime},
+		{Name: "due_date", Type: field.TypeTime},
 		{Name: "invoice_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "category_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "status_id", Type: field.TypeUUID, Nullable: true},
@@ -64,12 +64,12 @@ var (
 	// InvoicesColumns holds the columns for the "invoices" table.
 	InvoicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "title", Type: field.TypeString},
-		{Name: "amount", Type: field.TypeFloat64},
-		{Name: "issue_date", Type: field.TypeTime},
-		{Name: "due_date", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "amount", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "decimal(10,2)"}},
+		{Name: "title", Type: field.TypeString, Size: 255},
+		{Name: "issue_date", Type: field.TypeTime},
+		{Name: "due_date", Type: field.TypeTime},
 		{Name: "status_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// InvoicesTable holds the schema information for the "invoices" table.
@@ -89,10 +89,10 @@ var (
 	// PaymentStatusColumns holds the columns for the "payment_status" table.
 	PaymentStatusColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true},
 	}
 	// PaymentStatusTable holds the schema information for the "payment_status" table.
 	PaymentStatusTable = &schema.Table{

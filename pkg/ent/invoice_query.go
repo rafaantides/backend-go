@@ -25,6 +25,7 @@ type InvoiceQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Invoice
 	withStatus *PaymentStatusQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -299,12 +300,12 @@ func (iq *InvoiceQuery) WithStatus(opts ...func(*PaymentStatusQuery)) *InvoiceQu
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Invoice.Query().
-//		GroupBy(invoice.FieldTitle).
+//		GroupBy(invoice.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (iq *InvoiceQuery) GroupBy(field string, fields ...string) *InvoiceGroupBy {
@@ -322,11 +323,11 @@ func (iq *InvoiceQuery) GroupBy(field string, fields ...string) *InvoiceGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Invoice.Query().
-//		Select(invoice.FieldTitle).
+//		Select(invoice.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (iq *InvoiceQuery) Select(fields ...string) *InvoiceSelect {
 	iq.ctx.Fields = append(iq.ctx.Fields, fields...)
@@ -370,11 +371,18 @@ func (iq *InvoiceQuery) prepareQuery(ctx context.Context) error {
 func (iq *InvoiceQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Invoice, error) {
 	var (
 		nodes       = []*Invoice{}
+		withFKs     = iq.withFKs
 		_spec       = iq.querySpec()
 		loadedTypes = [1]bool{
 			iq.withStatus != nil,
 		}
 	)
+	if iq.withStatus != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, invoice.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Invoice).scanValues(nil, columns)
 	}
@@ -406,10 +414,10 @@ func (iq *InvoiceQuery) loadStatus(ctx context.Context, query *PaymentStatusQuer
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Invoice)
 	for i := range nodes {
-		if nodes[i].StatusID == nil {
+		if nodes[i].status_id == nil {
 			continue
 		}
-		fk := *nodes[i].StatusID
+		fk := *nodes[i].status_id
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -459,9 +467,6 @@ func (iq *InvoiceQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != invoice.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if iq.withStatus != nil {
-			_spec.Node.AddColumnOnce(invoice.FieldStatusID)
 		}
 	}
 	if ps := iq.predicates; len(ps) > 0 {

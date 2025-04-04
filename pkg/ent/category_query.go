@@ -263,12 +263,12 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Category.Query().
-//		GroupBy(category.FieldName).
+//		GroupBy(category.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupBy {
@@ -286,11 +286,11 @@ func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupB
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Category.Query().
-//		Select(category.FieldName).
+//		Select(category.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (cq *CategoryQuery) Select(fields ...string) *CategorySelect {
 	cq.ctx.Fields = append(cq.ctx.Fields, fields...)

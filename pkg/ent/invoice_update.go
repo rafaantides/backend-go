@@ -30,17 +30,9 @@ func (iu *InvoiceUpdate) Where(ps ...predicate.Invoice) *InvoiceUpdate {
 	return iu
 }
 
-// SetTitle sets the "title" field.
-func (iu *InvoiceUpdate) SetTitle(s string) *InvoiceUpdate {
-	iu.mutation.SetTitle(s)
-	return iu
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (iu *InvoiceUpdate) SetNillableTitle(s *string) *InvoiceUpdate {
-	if s != nil {
-		iu.SetTitle(*s)
-	}
+// SetUpdatedAt sets the "updated_at" field.
+func (iu *InvoiceUpdate) SetUpdatedAt(t time.Time) *InvoiceUpdate {
+	iu.mutation.SetUpdatedAt(t)
 	return iu
 }
 
@@ -62,6 +54,20 @@ func (iu *InvoiceUpdate) SetNillableAmount(f *float64) *InvoiceUpdate {
 // AddAmount adds f to the "amount" field.
 func (iu *InvoiceUpdate) AddAmount(f float64) *InvoiceUpdate {
 	iu.mutation.AddAmount(f)
+	return iu
+}
+
+// SetTitle sets the "title" field.
+func (iu *InvoiceUpdate) SetTitle(s string) *InvoiceUpdate {
+	iu.mutation.SetTitle(s)
+	return iu
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (iu *InvoiceUpdate) SetNillableTitle(s *string) *InvoiceUpdate {
+	if s != nil {
+		iu.SetTitle(*s)
+	}
 	return iu
 }
 
@@ -93,43 +99,17 @@ func (iu *InvoiceUpdate) SetNillableDueDate(t *time.Time) *InvoiceUpdate {
 	return iu
 }
 
-// SetStatusID sets the "status_id" field.
-func (iu *InvoiceUpdate) SetStatusID(u uuid.UUID) *InvoiceUpdate {
-	iu.mutation.SetStatusID(u)
+// SetStatusID sets the "status" edge to the PaymentStatus entity by ID.
+func (iu *InvoiceUpdate) SetStatusID(id uuid.UUID) *InvoiceUpdate {
+	iu.mutation.SetStatusID(id)
 	return iu
 }
 
-// SetNillableStatusID sets the "status_id" field if the given value is not nil.
-func (iu *InvoiceUpdate) SetNillableStatusID(u *uuid.UUID) *InvoiceUpdate {
-	if u != nil {
-		iu.SetStatusID(*u)
+// SetNillableStatusID sets the "status" edge to the PaymentStatus entity by ID if the given value is not nil.
+func (iu *InvoiceUpdate) SetNillableStatusID(id *uuid.UUID) *InvoiceUpdate {
+	if id != nil {
+		iu = iu.SetStatusID(*id)
 	}
-	return iu
-}
-
-// ClearStatusID clears the value of the "status_id" field.
-func (iu *InvoiceUpdate) ClearStatusID() *InvoiceUpdate {
-	iu.mutation.ClearStatusID()
-	return iu
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (iu *InvoiceUpdate) SetCreatedAt(t time.Time) *InvoiceUpdate {
-	iu.mutation.SetCreatedAt(t)
-	return iu
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (iu *InvoiceUpdate) SetNillableCreatedAt(t *time.Time) *InvoiceUpdate {
-	if t != nil {
-		iu.SetCreatedAt(*t)
-	}
-	return iu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (iu *InvoiceUpdate) SetUpdatedAt(t time.Time) *InvoiceUpdate {
-	iu.mutation.SetUpdatedAt(t)
 	return iu
 }
 
@@ -185,7 +165,20 @@ func (iu *InvoiceUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (iu *InvoiceUpdate) check() error {
+	if v, ok := iu.mutation.Title(); ok {
+		if err := invoice.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Invoice.title": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (iu *InvoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := iu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(invoice.Table, invoice.Columns, sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeUUID))
 	if ps := iu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -194,8 +187,8 @@ func (iu *InvoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := iu.mutation.Title(); ok {
-		_spec.SetField(invoice.FieldTitle, field.TypeString, value)
+	if value, ok := iu.mutation.UpdatedAt(); ok {
+		_spec.SetField(invoice.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := iu.mutation.Amount(); ok {
 		_spec.SetField(invoice.FieldAmount, field.TypeFloat64, value)
@@ -203,17 +196,14 @@ func (iu *InvoiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := iu.mutation.AddedAmount(); ok {
 		_spec.AddField(invoice.FieldAmount, field.TypeFloat64, value)
 	}
+	if value, ok := iu.mutation.Title(); ok {
+		_spec.SetField(invoice.FieldTitle, field.TypeString, value)
+	}
 	if value, ok := iu.mutation.IssueDate(); ok {
 		_spec.SetField(invoice.FieldIssueDate, field.TypeTime, value)
 	}
 	if value, ok := iu.mutation.DueDate(); ok {
 		_spec.SetField(invoice.FieldDueDate, field.TypeTime, value)
-	}
-	if value, ok := iu.mutation.CreatedAt(); ok {
-		_spec.SetField(invoice.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := iu.mutation.UpdatedAt(); ok {
-		_spec.SetField(invoice.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if iu.mutation.StatusCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -264,17 +254,9 @@ type InvoiceUpdateOne struct {
 	mutation *InvoiceMutation
 }
 
-// SetTitle sets the "title" field.
-func (iuo *InvoiceUpdateOne) SetTitle(s string) *InvoiceUpdateOne {
-	iuo.mutation.SetTitle(s)
-	return iuo
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (iuo *InvoiceUpdateOne) SetNillableTitle(s *string) *InvoiceUpdateOne {
-	if s != nil {
-		iuo.SetTitle(*s)
-	}
+// SetUpdatedAt sets the "updated_at" field.
+func (iuo *InvoiceUpdateOne) SetUpdatedAt(t time.Time) *InvoiceUpdateOne {
+	iuo.mutation.SetUpdatedAt(t)
 	return iuo
 }
 
@@ -296,6 +278,20 @@ func (iuo *InvoiceUpdateOne) SetNillableAmount(f *float64) *InvoiceUpdateOne {
 // AddAmount adds f to the "amount" field.
 func (iuo *InvoiceUpdateOne) AddAmount(f float64) *InvoiceUpdateOne {
 	iuo.mutation.AddAmount(f)
+	return iuo
+}
+
+// SetTitle sets the "title" field.
+func (iuo *InvoiceUpdateOne) SetTitle(s string) *InvoiceUpdateOne {
+	iuo.mutation.SetTitle(s)
+	return iuo
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (iuo *InvoiceUpdateOne) SetNillableTitle(s *string) *InvoiceUpdateOne {
+	if s != nil {
+		iuo.SetTitle(*s)
+	}
 	return iuo
 }
 
@@ -327,43 +323,17 @@ func (iuo *InvoiceUpdateOne) SetNillableDueDate(t *time.Time) *InvoiceUpdateOne 
 	return iuo
 }
 
-// SetStatusID sets the "status_id" field.
-func (iuo *InvoiceUpdateOne) SetStatusID(u uuid.UUID) *InvoiceUpdateOne {
-	iuo.mutation.SetStatusID(u)
+// SetStatusID sets the "status" edge to the PaymentStatus entity by ID.
+func (iuo *InvoiceUpdateOne) SetStatusID(id uuid.UUID) *InvoiceUpdateOne {
+	iuo.mutation.SetStatusID(id)
 	return iuo
 }
 
-// SetNillableStatusID sets the "status_id" field if the given value is not nil.
-func (iuo *InvoiceUpdateOne) SetNillableStatusID(u *uuid.UUID) *InvoiceUpdateOne {
-	if u != nil {
-		iuo.SetStatusID(*u)
+// SetNillableStatusID sets the "status" edge to the PaymentStatus entity by ID if the given value is not nil.
+func (iuo *InvoiceUpdateOne) SetNillableStatusID(id *uuid.UUID) *InvoiceUpdateOne {
+	if id != nil {
+		iuo = iuo.SetStatusID(*id)
 	}
-	return iuo
-}
-
-// ClearStatusID clears the value of the "status_id" field.
-func (iuo *InvoiceUpdateOne) ClearStatusID() *InvoiceUpdateOne {
-	iuo.mutation.ClearStatusID()
-	return iuo
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (iuo *InvoiceUpdateOne) SetCreatedAt(t time.Time) *InvoiceUpdateOne {
-	iuo.mutation.SetCreatedAt(t)
-	return iuo
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (iuo *InvoiceUpdateOne) SetNillableCreatedAt(t *time.Time) *InvoiceUpdateOne {
-	if t != nil {
-		iuo.SetCreatedAt(*t)
-	}
-	return iuo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (iuo *InvoiceUpdateOne) SetUpdatedAt(t time.Time) *InvoiceUpdateOne {
-	iuo.mutation.SetUpdatedAt(t)
 	return iuo
 }
 
@@ -432,7 +402,20 @@ func (iuo *InvoiceUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (iuo *InvoiceUpdateOne) check() error {
+	if v, ok := iuo.mutation.Title(); ok {
+		if err := invoice.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Invoice.title": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (iuo *InvoiceUpdateOne) sqlSave(ctx context.Context) (_node *Invoice, err error) {
+	if err := iuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(invoice.Table, invoice.Columns, sqlgraph.NewFieldSpec(invoice.FieldID, field.TypeUUID))
 	id, ok := iuo.mutation.ID()
 	if !ok {
@@ -458,8 +441,8 @@ func (iuo *InvoiceUpdateOne) sqlSave(ctx context.Context) (_node *Invoice, err e
 			}
 		}
 	}
-	if value, ok := iuo.mutation.Title(); ok {
-		_spec.SetField(invoice.FieldTitle, field.TypeString, value)
+	if value, ok := iuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(invoice.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := iuo.mutation.Amount(); ok {
 		_spec.SetField(invoice.FieldAmount, field.TypeFloat64, value)
@@ -467,17 +450,14 @@ func (iuo *InvoiceUpdateOne) sqlSave(ctx context.Context) (_node *Invoice, err e
 	if value, ok := iuo.mutation.AddedAmount(); ok {
 		_spec.AddField(invoice.FieldAmount, field.TypeFloat64, value)
 	}
+	if value, ok := iuo.mutation.Title(); ok {
+		_spec.SetField(invoice.FieldTitle, field.TypeString, value)
+	}
 	if value, ok := iuo.mutation.IssueDate(); ok {
 		_spec.SetField(invoice.FieldIssueDate, field.TypeTime, value)
 	}
 	if value, ok := iuo.mutation.DueDate(); ok {
 		_spec.SetField(invoice.FieldDueDate, field.TypeTime, value)
-	}
-	if value, ok := iuo.mutation.CreatedAt(); ok {
-		_spec.SetField(invoice.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := iuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(invoice.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if iuo.mutation.StatusCleared() {
 		edge := &sqlgraph.EdgeSpec{

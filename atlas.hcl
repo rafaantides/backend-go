@@ -1,4 +1,23 @@
+variable "DB_USER" {
+  type = string
+}
+variable "DB_PASSWORD" {
+  type = string
+}
+variable "DB_HOST" {
+  type = string
+}
+variable "DB_PORT" {
+  type = string
+}
+variable "DB_NAME" {
+  type = string
+}
+variable "DB_DEV_NAME" {
+  type = string
+}
+
 env "local" {
-  url = "postgres://admin:admin@localhost:5432/rafa?sslmode=disable"
-  dev = "docker://postgres/15/dev"
+  url = "postgres://${var.DB_USER}:${var.DB_PASSWORD}@${var.DB_HOST}:${var.DB_PORT}/${var.DB_NAME}?sslmode=disable"
+  dev = "postgres://${var.DB_USER}:${var.DB_PASSWORD}@${var.DB_HOST}:${var.DB_PORT}/${var.DB_DEV_NAME}?sslmode=disable"
 }

@@ -131,11 +131,12 @@ func newDebtResponse(debt *ent.Debt) (models.Debt, error) {
 	return models.Debt{
 		ID:           debt.ID,
 		Title:        debt.Title,
-		CategoryID:   debt.CategoryID,
+		InvoiceID:    &debt.Edges.Invoice.ID,
+		CategoryID:   &debt.Edges.Category.ID,
 		Amount:       debt.Amount,
 		PurchaseDate: debt.PurchaseDate,
 		DueDate:      debt.DueDate,
-		StatusID:     debt.StatusID,
+		StatusID:     &debt.Edges.Status.ID,
 		CreatedAt:    debt.CreatedAt,
 		UpdatedAt:    debt.UpdatedAt,
 	}, nil
@@ -160,11 +161,12 @@ func newDebtsResponse(debts []*ent.Debt) ([]dto.DebtsResponse, error) {
 			ID:     debt.ID,
 			Title:  debt.Title,
 			Amount: debt.Amount,
+			// TODO: colocar invoiceID
 			// TODO: mudar para um utils
 			PurchaseDate: debt.PurchaseDate.Format("2006-01-02"),
 			DueDate:      strPtr(debt.DueDate.Format("2006-01-02")),
-			CategoryID:   debt.CategoryID,
-			StatusID:     debt.StatusID,
+			CategoryID:   &debt.Edges.Category.ID,
+			StatusID:     &debt.Edges.Status.ID,
 			// TODO: mudar para um utils
 			CreatedAt:    debt.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:    debt.UpdatedAt.Format(time.RFC3339),

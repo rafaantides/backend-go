@@ -21,26 +21,6 @@ type PaymentStatusCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (psc *PaymentStatusCreate) SetName(s string) *PaymentStatusCreate {
-	psc.mutation.SetName(s)
-	return psc
-}
-
-// SetDescription sets the "description" field.
-func (psc *PaymentStatusCreate) SetDescription(s string) *PaymentStatusCreate {
-	psc.mutation.SetDescription(s)
-	return psc
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (psc *PaymentStatusCreate) SetNillableDescription(s *string) *PaymentStatusCreate {
-	if s != nil {
-		psc.SetDescription(*s)
-	}
-	return psc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (psc *PaymentStatusCreate) SetCreatedAt(t time.Time) *PaymentStatusCreate {
 	psc.mutation.SetCreatedAt(t)
@@ -65,6 +45,26 @@ func (psc *PaymentStatusCreate) SetUpdatedAt(t time.Time) *PaymentStatusCreate {
 func (psc *PaymentStatusCreate) SetNillableUpdatedAt(t *time.Time) *PaymentStatusCreate {
 	if t != nil {
 		psc.SetUpdatedAt(*t)
+	}
+	return psc
+}
+
+// SetName sets the "name" field.
+func (psc *PaymentStatusCreate) SetName(s string) *PaymentStatusCreate {
+	psc.mutation.SetName(s)
+	return psc
+}
+
+// SetDescription sets the "description" field.
+func (psc *PaymentStatusCreate) SetDescription(s string) *PaymentStatusCreate {
+	psc.mutation.SetDescription(s)
+	return psc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (psc *PaymentStatusCreate) SetNillableDescription(s *string) *PaymentStatusCreate {
+	if s != nil {
+		psc.SetDescription(*s)
 	}
 	return psc
 }
@@ -134,14 +134,19 @@ func (psc *PaymentStatusCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (psc *PaymentStatusCreate) check() error {
-	if _, ok := psc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "PaymentStatus.name"`)}
-	}
 	if _, ok := psc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "PaymentStatus.created_at"`)}
 	}
 	if _, ok := psc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "PaymentStatus.updated_at"`)}
+	}
+	if _, ok := psc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "PaymentStatus.name"`)}
+	}
+	if v, ok := psc.mutation.Name(); ok {
+		if err := paymentstatus.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "PaymentStatus.name": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -178,14 +183,6 @@ func (psc *PaymentStatusCreate) createSpec() (*PaymentStatus, *sqlgraph.CreateSp
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := psc.mutation.Name(); ok {
-		_spec.SetField(paymentstatus.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := psc.mutation.Description(); ok {
-		_spec.SetField(paymentstatus.FieldDescription, field.TypeString, value)
-		_node.Description = &value
-	}
 	if value, ok := psc.mutation.CreatedAt(); ok {
 		_spec.SetField(paymentstatus.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -193,6 +190,14 @@ func (psc *PaymentStatusCreate) createSpec() (*PaymentStatus, *sqlgraph.CreateSp
 	if value, ok := psc.mutation.UpdatedAt(); ok {
 		_spec.SetField(paymentstatus.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := psc.mutation.Name(); ok {
+		_spec.SetField(paymentstatus.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := psc.mutation.Description(); ok {
+		_spec.SetField(paymentstatus.FieldDescription, field.TypeString, value)
+		_node.Description = &value
 	}
 	return _node, _spec
 }

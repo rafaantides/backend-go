@@ -32,57 +32,9 @@ func (du *DebtUpdate) Where(ps ...predicate.Debt) *DebtUpdate {
 	return du
 }
 
-// SetInvoiceID sets the "invoice_id" field.
-func (du *DebtUpdate) SetInvoiceID(u uuid.UUID) *DebtUpdate {
-	du.mutation.SetInvoiceID(u)
-	return du
-}
-
-// SetNillableInvoiceID sets the "invoice_id" field if the given value is not nil.
-func (du *DebtUpdate) SetNillableInvoiceID(u *uuid.UUID) *DebtUpdate {
-	if u != nil {
-		du.SetInvoiceID(*u)
-	}
-	return du
-}
-
-// ClearInvoiceID clears the value of the "invoice_id" field.
-func (du *DebtUpdate) ClearInvoiceID() *DebtUpdate {
-	du.mutation.ClearInvoiceID()
-	return du
-}
-
-// SetTitle sets the "title" field.
-func (du *DebtUpdate) SetTitle(s string) *DebtUpdate {
-	du.mutation.SetTitle(s)
-	return du
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (du *DebtUpdate) SetNillableTitle(s *string) *DebtUpdate {
-	if s != nil {
-		du.SetTitle(*s)
-	}
-	return du
-}
-
-// SetCategoryID sets the "category_id" field.
-func (du *DebtUpdate) SetCategoryID(u uuid.UUID) *DebtUpdate {
-	du.mutation.SetCategoryID(u)
-	return du
-}
-
-// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
-func (du *DebtUpdate) SetNillableCategoryID(u *uuid.UUID) *DebtUpdate {
-	if u != nil {
-		du.SetCategoryID(*u)
-	}
-	return du
-}
-
-// ClearCategoryID clears the value of the "category_id" field.
-func (du *DebtUpdate) ClearCategoryID() *DebtUpdate {
-	du.mutation.ClearCategoryID()
+// SetUpdatedAt sets the "updated_at" field.
+func (du *DebtUpdate) SetUpdatedAt(t time.Time) *DebtUpdate {
+	du.mutation.SetUpdatedAt(t)
 	return du
 }
 
@@ -104,6 +56,20 @@ func (du *DebtUpdate) SetNillableAmount(f *float64) *DebtUpdate {
 // AddAmount adds f to the "amount" field.
 func (du *DebtUpdate) AddAmount(f float64) *DebtUpdate {
 	du.mutation.AddAmount(f)
+	return du
+}
+
+// SetTitle sets the "title" field.
+func (du *DebtUpdate) SetTitle(s string) *DebtUpdate {
+	du.mutation.SetTitle(s)
+	return du
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (du *DebtUpdate) SetNillableTitle(s *string) *DebtUpdate {
+	if s != nil {
+		du.SetTitle(*s)
+	}
 	return du
 }
 
@@ -135,43 +101,17 @@ func (du *DebtUpdate) SetNillableDueDate(t *time.Time) *DebtUpdate {
 	return du
 }
 
-// SetStatusID sets the "status_id" field.
-func (du *DebtUpdate) SetStatusID(u uuid.UUID) *DebtUpdate {
-	du.mutation.SetStatusID(u)
+// SetInvoiceID sets the "invoice" edge to the Invoice entity by ID.
+func (du *DebtUpdate) SetInvoiceID(id uuid.UUID) *DebtUpdate {
+	du.mutation.SetInvoiceID(id)
 	return du
 }
 
-// SetNillableStatusID sets the "status_id" field if the given value is not nil.
-func (du *DebtUpdate) SetNillableStatusID(u *uuid.UUID) *DebtUpdate {
-	if u != nil {
-		du.SetStatusID(*u)
+// SetNillableInvoiceID sets the "invoice" edge to the Invoice entity by ID if the given value is not nil.
+func (du *DebtUpdate) SetNillableInvoiceID(id *uuid.UUID) *DebtUpdate {
+	if id != nil {
+		du = du.SetInvoiceID(*id)
 	}
-	return du
-}
-
-// ClearStatusID clears the value of the "status_id" field.
-func (du *DebtUpdate) ClearStatusID() *DebtUpdate {
-	du.mutation.ClearStatusID()
-	return du
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (du *DebtUpdate) SetCreatedAt(t time.Time) *DebtUpdate {
-	du.mutation.SetCreatedAt(t)
-	return du
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (du *DebtUpdate) SetNillableCreatedAt(t *time.Time) *DebtUpdate {
-	if t != nil {
-		du.SetCreatedAt(*t)
-	}
-	return du
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (du *DebtUpdate) SetUpdatedAt(t time.Time) *DebtUpdate {
-	du.mutation.SetUpdatedAt(t)
 	return du
 }
 
@@ -180,9 +120,37 @@ func (du *DebtUpdate) SetInvoice(i *Invoice) *DebtUpdate {
 	return du.SetInvoiceID(i.ID)
 }
 
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (du *DebtUpdate) SetCategoryID(id uuid.UUID) *DebtUpdate {
+	du.mutation.SetCategoryID(id)
+	return du
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (du *DebtUpdate) SetNillableCategoryID(id *uuid.UUID) *DebtUpdate {
+	if id != nil {
+		du = du.SetCategoryID(*id)
+	}
+	return du
+}
+
 // SetCategory sets the "category" edge to the Category entity.
 func (du *DebtUpdate) SetCategory(c *Category) *DebtUpdate {
 	return du.SetCategoryID(c.ID)
+}
+
+// SetStatusID sets the "status" edge to the PaymentStatus entity by ID.
+func (du *DebtUpdate) SetStatusID(id uuid.UUID) *DebtUpdate {
+	du.mutation.SetStatusID(id)
+	return du
+}
+
+// SetNillableStatusID sets the "status" edge to the PaymentStatus entity by ID if the given value is not nil.
+func (du *DebtUpdate) SetNillableStatusID(id *uuid.UUID) *DebtUpdate {
+	if id != nil {
+		du = du.SetStatusID(*id)
+	}
+	return du
 }
 
 // SetStatus sets the "status" edge to the PaymentStatus entity.
@@ -249,7 +217,20 @@ func (du *DebtUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (du *DebtUpdate) check() error {
+	if v, ok := du.mutation.Title(); ok {
+		if err := debt.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Debt.title": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (du *DebtUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := du.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(debt.Table, debt.Columns, sqlgraph.NewFieldSpec(debt.FieldID, field.TypeUUID))
 	if ps := du.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -258,8 +239,8 @@ func (du *DebtUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := du.mutation.Title(); ok {
-		_spec.SetField(debt.FieldTitle, field.TypeString, value)
+	if value, ok := du.mutation.UpdatedAt(); ok {
+		_spec.SetField(debt.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := du.mutation.Amount(); ok {
 		_spec.SetField(debt.FieldAmount, field.TypeFloat64, value)
@@ -267,17 +248,14 @@ func (du *DebtUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := du.mutation.AddedAmount(); ok {
 		_spec.AddField(debt.FieldAmount, field.TypeFloat64, value)
 	}
+	if value, ok := du.mutation.Title(); ok {
+		_spec.SetField(debt.FieldTitle, field.TypeString, value)
+	}
 	if value, ok := du.mutation.PurchaseDate(); ok {
 		_spec.SetField(debt.FieldPurchaseDate, field.TypeTime, value)
 	}
 	if value, ok := du.mutation.DueDate(); ok {
 		_spec.SetField(debt.FieldDueDate, field.TypeTime, value)
-	}
-	if value, ok := du.mutation.CreatedAt(); ok {
-		_spec.SetField(debt.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := du.mutation.UpdatedAt(); ok {
-		_spec.SetField(debt.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if du.mutation.InvoiceCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -386,57 +364,9 @@ type DebtUpdateOne struct {
 	mutation *DebtMutation
 }
 
-// SetInvoiceID sets the "invoice_id" field.
-func (duo *DebtUpdateOne) SetInvoiceID(u uuid.UUID) *DebtUpdateOne {
-	duo.mutation.SetInvoiceID(u)
-	return duo
-}
-
-// SetNillableInvoiceID sets the "invoice_id" field if the given value is not nil.
-func (duo *DebtUpdateOne) SetNillableInvoiceID(u *uuid.UUID) *DebtUpdateOne {
-	if u != nil {
-		duo.SetInvoiceID(*u)
-	}
-	return duo
-}
-
-// ClearInvoiceID clears the value of the "invoice_id" field.
-func (duo *DebtUpdateOne) ClearInvoiceID() *DebtUpdateOne {
-	duo.mutation.ClearInvoiceID()
-	return duo
-}
-
-// SetTitle sets the "title" field.
-func (duo *DebtUpdateOne) SetTitle(s string) *DebtUpdateOne {
-	duo.mutation.SetTitle(s)
-	return duo
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (duo *DebtUpdateOne) SetNillableTitle(s *string) *DebtUpdateOne {
-	if s != nil {
-		duo.SetTitle(*s)
-	}
-	return duo
-}
-
-// SetCategoryID sets the "category_id" field.
-func (duo *DebtUpdateOne) SetCategoryID(u uuid.UUID) *DebtUpdateOne {
-	duo.mutation.SetCategoryID(u)
-	return duo
-}
-
-// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
-func (duo *DebtUpdateOne) SetNillableCategoryID(u *uuid.UUID) *DebtUpdateOne {
-	if u != nil {
-		duo.SetCategoryID(*u)
-	}
-	return duo
-}
-
-// ClearCategoryID clears the value of the "category_id" field.
-func (duo *DebtUpdateOne) ClearCategoryID() *DebtUpdateOne {
-	duo.mutation.ClearCategoryID()
+// SetUpdatedAt sets the "updated_at" field.
+func (duo *DebtUpdateOne) SetUpdatedAt(t time.Time) *DebtUpdateOne {
+	duo.mutation.SetUpdatedAt(t)
 	return duo
 }
 
@@ -458,6 +388,20 @@ func (duo *DebtUpdateOne) SetNillableAmount(f *float64) *DebtUpdateOne {
 // AddAmount adds f to the "amount" field.
 func (duo *DebtUpdateOne) AddAmount(f float64) *DebtUpdateOne {
 	duo.mutation.AddAmount(f)
+	return duo
+}
+
+// SetTitle sets the "title" field.
+func (duo *DebtUpdateOne) SetTitle(s string) *DebtUpdateOne {
+	duo.mutation.SetTitle(s)
+	return duo
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (duo *DebtUpdateOne) SetNillableTitle(s *string) *DebtUpdateOne {
+	if s != nil {
+		duo.SetTitle(*s)
+	}
 	return duo
 }
 
@@ -489,43 +433,17 @@ func (duo *DebtUpdateOne) SetNillableDueDate(t *time.Time) *DebtUpdateOne {
 	return duo
 }
 
-// SetStatusID sets the "status_id" field.
-func (duo *DebtUpdateOne) SetStatusID(u uuid.UUID) *DebtUpdateOne {
-	duo.mutation.SetStatusID(u)
+// SetInvoiceID sets the "invoice" edge to the Invoice entity by ID.
+func (duo *DebtUpdateOne) SetInvoiceID(id uuid.UUID) *DebtUpdateOne {
+	duo.mutation.SetInvoiceID(id)
 	return duo
 }
 
-// SetNillableStatusID sets the "status_id" field if the given value is not nil.
-func (duo *DebtUpdateOne) SetNillableStatusID(u *uuid.UUID) *DebtUpdateOne {
-	if u != nil {
-		duo.SetStatusID(*u)
+// SetNillableInvoiceID sets the "invoice" edge to the Invoice entity by ID if the given value is not nil.
+func (duo *DebtUpdateOne) SetNillableInvoiceID(id *uuid.UUID) *DebtUpdateOne {
+	if id != nil {
+		duo = duo.SetInvoiceID(*id)
 	}
-	return duo
-}
-
-// ClearStatusID clears the value of the "status_id" field.
-func (duo *DebtUpdateOne) ClearStatusID() *DebtUpdateOne {
-	duo.mutation.ClearStatusID()
-	return duo
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (duo *DebtUpdateOne) SetCreatedAt(t time.Time) *DebtUpdateOne {
-	duo.mutation.SetCreatedAt(t)
-	return duo
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (duo *DebtUpdateOne) SetNillableCreatedAt(t *time.Time) *DebtUpdateOne {
-	if t != nil {
-		duo.SetCreatedAt(*t)
-	}
-	return duo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (duo *DebtUpdateOne) SetUpdatedAt(t time.Time) *DebtUpdateOne {
-	duo.mutation.SetUpdatedAt(t)
 	return duo
 }
 
@@ -534,9 +452,37 @@ func (duo *DebtUpdateOne) SetInvoice(i *Invoice) *DebtUpdateOne {
 	return duo.SetInvoiceID(i.ID)
 }
 
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (duo *DebtUpdateOne) SetCategoryID(id uuid.UUID) *DebtUpdateOne {
+	duo.mutation.SetCategoryID(id)
+	return duo
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (duo *DebtUpdateOne) SetNillableCategoryID(id *uuid.UUID) *DebtUpdateOne {
+	if id != nil {
+		duo = duo.SetCategoryID(*id)
+	}
+	return duo
+}
+
 // SetCategory sets the "category" edge to the Category entity.
 func (duo *DebtUpdateOne) SetCategory(c *Category) *DebtUpdateOne {
 	return duo.SetCategoryID(c.ID)
+}
+
+// SetStatusID sets the "status" edge to the PaymentStatus entity by ID.
+func (duo *DebtUpdateOne) SetStatusID(id uuid.UUID) *DebtUpdateOne {
+	duo.mutation.SetStatusID(id)
+	return duo
+}
+
+// SetNillableStatusID sets the "status" edge to the PaymentStatus entity by ID if the given value is not nil.
+func (duo *DebtUpdateOne) SetNillableStatusID(id *uuid.UUID) *DebtUpdateOne {
+	if id != nil {
+		duo = duo.SetStatusID(*id)
+	}
+	return duo
 }
 
 // SetStatus sets the "status" edge to the PaymentStatus entity.
@@ -616,7 +562,20 @@ func (duo *DebtUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (duo *DebtUpdateOne) check() error {
+	if v, ok := duo.mutation.Title(); ok {
+		if err := debt.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Debt.title": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (duo *DebtUpdateOne) sqlSave(ctx context.Context) (_node *Debt, err error) {
+	if err := duo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(debt.Table, debt.Columns, sqlgraph.NewFieldSpec(debt.FieldID, field.TypeUUID))
 	id, ok := duo.mutation.ID()
 	if !ok {
@@ -642,8 +601,8 @@ func (duo *DebtUpdateOne) sqlSave(ctx context.Context) (_node *Debt, err error) 
 			}
 		}
 	}
-	if value, ok := duo.mutation.Title(); ok {
-		_spec.SetField(debt.FieldTitle, field.TypeString, value)
+	if value, ok := duo.mutation.UpdatedAt(); ok {
+		_spec.SetField(debt.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := duo.mutation.Amount(); ok {
 		_spec.SetField(debt.FieldAmount, field.TypeFloat64, value)
@@ -651,17 +610,14 @@ func (duo *DebtUpdateOne) sqlSave(ctx context.Context) (_node *Debt, err error) 
 	if value, ok := duo.mutation.AddedAmount(); ok {
 		_spec.AddField(debt.FieldAmount, field.TypeFloat64, value)
 	}
+	if value, ok := duo.mutation.Title(); ok {
+		_spec.SetField(debt.FieldTitle, field.TypeString, value)
+	}
 	if value, ok := duo.mutation.PurchaseDate(); ok {
 		_spec.SetField(debt.FieldPurchaseDate, field.TypeTime, value)
 	}
 	if value, ok := duo.mutation.DueDate(); ok {
 		_spec.SetField(debt.FieldDueDate, field.TypeTime, value)
-	}
-	if value, ok := duo.mutation.CreatedAt(); ok {
-		_spec.SetField(debt.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := duo.mutation.UpdatedAt(); ok {
-		_spec.SetField(debt.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if duo.mutation.InvoiceCleared() {
 		edge := &sqlgraph.EdgeSpec{

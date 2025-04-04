@@ -21,26 +21,6 @@ type CategoryCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (cc *CategoryCreate) SetName(s string) *CategoryCreate {
-	cc.mutation.SetName(s)
-	return cc
-}
-
-// SetDescription sets the "description" field.
-func (cc *CategoryCreate) SetDescription(s string) *CategoryCreate {
-	cc.mutation.SetDescription(s)
-	return cc
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (cc *CategoryCreate) SetNillableDescription(s *string) *CategoryCreate {
-	if s != nil {
-		cc.SetDescription(*s)
-	}
-	return cc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (cc *CategoryCreate) SetCreatedAt(t time.Time) *CategoryCreate {
 	cc.mutation.SetCreatedAt(t)
@@ -65,6 +45,26 @@ func (cc *CategoryCreate) SetUpdatedAt(t time.Time) *CategoryCreate {
 func (cc *CategoryCreate) SetNillableUpdatedAt(t *time.Time) *CategoryCreate {
 	if t != nil {
 		cc.SetUpdatedAt(*t)
+	}
+	return cc
+}
+
+// SetName sets the "name" field.
+func (cc *CategoryCreate) SetName(s string) *CategoryCreate {
+	cc.mutation.SetName(s)
+	return cc
+}
+
+// SetDescription sets the "description" field.
+func (cc *CategoryCreate) SetDescription(s string) *CategoryCreate {
+	cc.mutation.SetDescription(s)
+	return cc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (cc *CategoryCreate) SetNillableDescription(s *string) *CategoryCreate {
+	if s != nil {
+		cc.SetDescription(*s)
 	}
 	return cc
 }
@@ -134,14 +134,19 @@ func (cc *CategoryCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (cc *CategoryCreate) check() error {
-	if _, ok := cc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Category.name"`)}
-	}
 	if _, ok := cc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Category.created_at"`)}
 	}
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Category.updated_at"`)}
+	}
+	if _, ok := cc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Category.name"`)}
+	}
+	if v, ok := cc.mutation.Name(); ok {
+		if err := category.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Category.name": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -178,14 +183,6 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := cc.mutation.Name(); ok {
-		_spec.SetField(category.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := cc.mutation.Description(); ok {
-		_spec.SetField(category.FieldDescription, field.TypeString, value)
-		_node.Description = &value
-	}
 	if value, ok := cc.mutation.CreatedAt(); ok {
 		_spec.SetField(category.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -193,6 +190,14 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.UpdatedAt(); ok {
 		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := cc.mutation.Name(); ok {
+		_spec.SetField(category.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := cc.mutation.Description(); ok {
+		_spec.SetField(category.FieldDescription, field.TypeString, value)
+		_node.Description = &value
 	}
 	return _node, _spec
 }

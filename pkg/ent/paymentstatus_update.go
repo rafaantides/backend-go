@@ -28,6 +28,12 @@ func (psu *PaymentStatusUpdate) Where(ps ...predicate.PaymentStatus) *PaymentSta
 	return psu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (psu *PaymentStatusUpdate) SetUpdatedAt(t time.Time) *PaymentStatusUpdate {
+	psu.mutation.SetUpdatedAt(t)
+	return psu
+}
+
 // SetName sets the "name" field.
 func (psu *PaymentStatusUpdate) SetName(s string) *PaymentStatusUpdate {
 	psu.mutation.SetName(s)
@@ -59,26 +65,6 @@ func (psu *PaymentStatusUpdate) SetNillableDescription(s *string) *PaymentStatus
 // ClearDescription clears the value of the "description" field.
 func (psu *PaymentStatusUpdate) ClearDescription() *PaymentStatusUpdate {
 	psu.mutation.ClearDescription()
-	return psu
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (psu *PaymentStatusUpdate) SetCreatedAt(t time.Time) *PaymentStatusUpdate {
-	psu.mutation.SetCreatedAt(t)
-	return psu
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (psu *PaymentStatusUpdate) SetNillableCreatedAt(t *time.Time) *PaymentStatusUpdate {
-	if t != nil {
-		psu.SetCreatedAt(*t)
-	}
-	return psu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (psu *PaymentStatusUpdate) SetUpdatedAt(t time.Time) *PaymentStatusUpdate {
-	psu.mutation.SetUpdatedAt(t)
 	return psu
 }
 
@@ -123,7 +109,20 @@ func (psu *PaymentStatusUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (psu *PaymentStatusUpdate) check() error {
+	if v, ok := psu.mutation.Name(); ok {
+		if err := paymentstatus.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "PaymentStatus.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (psu *PaymentStatusUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := psu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(paymentstatus.Table, paymentstatus.Columns, sqlgraph.NewFieldSpec(paymentstatus.FieldID, field.TypeUUID))
 	if ps := psu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -131,6 +130,9 @@ func (psu *PaymentStatusUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := psu.mutation.UpdatedAt(); ok {
+		_spec.SetField(paymentstatus.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := psu.mutation.Name(); ok {
 		_spec.SetField(paymentstatus.FieldName, field.TypeString, value)
@@ -140,12 +142,6 @@ func (psu *PaymentStatusUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if psu.mutation.DescriptionCleared() {
 		_spec.ClearField(paymentstatus.FieldDescription, field.TypeString)
-	}
-	if value, ok := psu.mutation.CreatedAt(); ok {
-		_spec.SetField(paymentstatus.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := psu.mutation.UpdatedAt(); ok {
-		_spec.SetField(paymentstatus.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, psu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -165,6 +161,12 @@ type PaymentStatusUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *PaymentStatusMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (psuo *PaymentStatusUpdateOne) SetUpdatedAt(t time.Time) *PaymentStatusUpdateOne {
+	psuo.mutation.SetUpdatedAt(t)
+	return psuo
 }
 
 // SetName sets the "name" field.
@@ -198,26 +200,6 @@ func (psuo *PaymentStatusUpdateOne) SetNillableDescription(s *string) *PaymentSt
 // ClearDescription clears the value of the "description" field.
 func (psuo *PaymentStatusUpdateOne) ClearDescription() *PaymentStatusUpdateOne {
 	psuo.mutation.ClearDescription()
-	return psuo
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (psuo *PaymentStatusUpdateOne) SetCreatedAt(t time.Time) *PaymentStatusUpdateOne {
-	psuo.mutation.SetCreatedAt(t)
-	return psuo
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (psuo *PaymentStatusUpdateOne) SetNillableCreatedAt(t *time.Time) *PaymentStatusUpdateOne {
-	if t != nil {
-		psuo.SetCreatedAt(*t)
-	}
-	return psuo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (psuo *PaymentStatusUpdateOne) SetUpdatedAt(t time.Time) *PaymentStatusUpdateOne {
-	psuo.mutation.SetUpdatedAt(t)
 	return psuo
 }
 
@@ -275,7 +257,20 @@ func (psuo *PaymentStatusUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (psuo *PaymentStatusUpdateOne) check() error {
+	if v, ok := psuo.mutation.Name(); ok {
+		if err := paymentstatus.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "PaymentStatus.name": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (psuo *PaymentStatusUpdateOne) sqlSave(ctx context.Context) (_node *PaymentStatus, err error) {
+	if err := psuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(paymentstatus.Table, paymentstatus.Columns, sqlgraph.NewFieldSpec(paymentstatus.FieldID, field.TypeUUID))
 	id, ok := psuo.mutation.ID()
 	if !ok {
@@ -301,6 +296,9 @@ func (psuo *PaymentStatusUpdateOne) sqlSave(ctx context.Context) (_node *Payment
 			}
 		}
 	}
+	if value, ok := psuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(paymentstatus.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := psuo.mutation.Name(); ok {
 		_spec.SetField(paymentstatus.FieldName, field.TypeString, value)
 	}
@@ -309,12 +307,6 @@ func (psuo *PaymentStatusUpdateOne) sqlSave(ctx context.Context) (_node *Payment
 	}
 	if psuo.mutation.DescriptionCleared() {
 		_spec.ClearField(paymentstatus.FieldDescription, field.TypeString)
-	}
-	if value, ok := psuo.mutation.CreatedAt(); ok {
-		_spec.SetField(paymentstatus.FieldCreatedAt, field.TypeTime, value)
-	}
-	if value, ok := psuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(paymentstatus.FieldUpdatedAt, field.TypeTime, value)
 	}
 	_node = &PaymentStatus{config: psuo.config}
 	_spec.Assign = _node.assignValues

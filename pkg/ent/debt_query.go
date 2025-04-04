@@ -29,6 +29,7 @@ type DebtQuery struct {
 	withInvoice  *InvoiceQuery
 	withCategory *CategoryQuery
 	withStatus   *PaymentStatusQuery
+	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -371,12 +372,12 @@ func (dq *DebtQuery) WithStatus(opts ...func(*PaymentStatusQuery)) *DebtQuery {
 // Example:
 //
 //	var v []struct {
-//		InvoiceID uuid.UUID `json:"invoice_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Debt.Query().
-//		GroupBy(debt.FieldInvoiceID).
+//		GroupBy(debt.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (dq *DebtQuery) GroupBy(field string, fields ...string) *DebtGroupBy {
@@ -394,11 +395,11 @@ func (dq *DebtQuery) GroupBy(field string, fields ...string) *DebtGroupBy {
 // Example:
 //
 //	var v []struct {
-//		InvoiceID uuid.UUID `json:"invoice_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Debt.Query().
-//		Select(debt.FieldInvoiceID).
+//		Select(debt.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (dq *DebtQuery) Select(fields ...string) *DebtSelect {
 	dq.ctx.Fields = append(dq.ctx.Fields, fields...)
@@ -442,6 +443,7 @@ func (dq *DebtQuery) prepareQuery(ctx context.Context) error {
 func (dq *DebtQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Debt, error) {
 	var (
 		nodes       = []*Debt{}
+		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
 		loadedTypes = [3]bool{
 			dq.withInvoice != nil,
@@ -449,6 +451,12 @@ func (dq *DebtQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Debt, e
 			dq.withStatus != nil,
 		}
 	)
+	if dq.withInvoice != nil || dq.withCategory != nil || dq.withStatus != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, debt.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Debt).scanValues(nil, columns)
 	}
@@ -492,10 +500,10 @@ func (dq *DebtQuery) loadInvoice(ctx context.Context, query *InvoiceQuery, nodes
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Debt)
 	for i := range nodes {
-		if nodes[i].InvoiceID == nil {
+		if nodes[i].invoice_id == nil {
 			continue
 		}
-		fk := *nodes[i].InvoiceID
+		fk := *nodes[i].invoice_id
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -524,10 +532,10 @@ func (dq *DebtQuery) loadCategory(ctx context.Context, query *CategoryQuery, nod
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Debt)
 	for i := range nodes {
-		if nodes[i].CategoryID == nil {
+		if nodes[i].category_id == nil {
 			continue
 		}
-		fk := *nodes[i].CategoryID
+		fk := *nodes[i].category_id
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -556,10 +564,10 @@ func (dq *DebtQuery) loadStatus(ctx context.Context, query *PaymentStatusQuery, 
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Debt)
 	for i := range nodes {
-		if nodes[i].StatusID == nil {
+		if nodes[i].status_id == nil {
 			continue
 		}
-		fk := *nodes[i].StatusID
+		fk := *nodes[i].status_id
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -609,15 +617,6 @@ func (dq *DebtQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != debt.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if dq.withInvoice != nil {
-			_spec.Node.AddColumnOnce(debt.FieldInvoiceID)
-		}
-		if dq.withCategory != nil {
-			_spec.Node.AddColumnOnce(debt.FieldCategoryID)
-		}
-		if dq.withStatus != nil {
-			_spec.Node.AddColumnOnce(debt.FieldStatusID)
 		}
 	}
 	if ps := dq.predicates; len(ps) > 0 {

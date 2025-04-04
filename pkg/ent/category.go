@@ -18,14 +18,14 @@ type Category struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Description holds the value of the "description" field.
-	Description *string `json:"description,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description  *string `json:"description,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -61,6 +61,18 @@ func (c *Category) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				c.ID = *value
 			}
+		case category.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				c.CreatedAt = value.Time
+			}
+		case category.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				c.UpdatedAt = value.Time
+			}
 		case category.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -73,18 +85,6 @@ func (c *Category) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Description = new(string)
 				*c.Description = value.String
-			}
-		case category.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				c.CreatedAt = value.Time
-			}
-		case category.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				c.UpdatedAt = value.Time
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -122,6 +122,12 @@ func (c *Category) String() string {
 	var builder strings.Builder
 	builder.WriteString("Category(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(c.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(c.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(c.Name)
 	builder.WriteString(", ")
@@ -129,12 +135,6 @@ func (c *Category) String() string {
 		builder.WriteString("description=")
 		builder.WriteString(*v)
 	}
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(c.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(c.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
