@@ -61,7 +61,7 @@ func (d *PostgreSQL) GetDebtByID(ctx context.Context, id uuid.UUID) (models.Debt
 // 	if err != nil {
 // 		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
 // 	}
-// 	return data, nil
+// 	return data, nil*sql.Rows
 // }
 
 // func (d *PostgreSQL) UpdateDebt(debt models.Debt) (models.Debt, error) {

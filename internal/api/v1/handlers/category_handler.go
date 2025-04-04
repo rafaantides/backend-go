@@ -21,6 +21,7 @@ func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
 }
 
 func (h *CategoryHandler) CreateCategoryHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	var req dto.CategoryRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -34,7 +35,7 @@ func (h *CategoryHandler) CreateCategoryHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.Service.CreateCategory(input)
+	data, err := h.Service.CreateCategory(ctx, input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
@@ -44,13 +45,14 @@ func (h *CategoryHandler) CreateCategoryHandler(c *gin.Context) {
 }
 
 func (h *CategoryHandler) GetCategoryByIDHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	data, err := h.Service.GetCategoryByID(*id)
+	data, err := h.Service.GetCategoryByID(ctx, *id)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			c.Error(errs.NewAPIError(http.StatusNotFound, err))
@@ -64,6 +66,7 @@ func (h *CategoryHandler) GetCategoryByIDHandler(c *gin.Context) {
 }
 
 func (h *CategoryHandler) ListCategorysHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	pgn, err := pagination.NewPagination(c)
 
 	if err != nil {
@@ -82,7 +85,7 @@ func (h *CategoryHandler) ListCategorysHandler(c *gin.Context) {
 		return
 	}
 
-	response, total, err := h.Service.ListCategories(pgn)
+	response, total, err := h.Service.ListCategories(ctx, pgn)
 
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
@@ -95,6 +98,7 @@ func (h *CategoryHandler) ListCategorysHandler(c *gin.Context) {
 }
 
 func (h *CategoryHandler) UpdateCategoryHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
@@ -113,7 +117,7 @@ func (h *CategoryHandler) UpdateCategoryHandler(c *gin.Context) {
 		return
 	}
 
-	data, err := h.Service.UpdateCategory(input)
+	data, err := h.Service.UpdateCategory(ctx, input)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return
@@ -123,13 +127,14 @@ func (h *CategoryHandler) UpdateCategoryHandler(c *gin.Context) {
 }
 
 func (h *CategoryHandler) DeleteCategoryHandler(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := utils.ToUUIDPointer(c.Param("id"))
 	if err != nil || id == nil {
 		c.Error(errs.NewAPIError(http.StatusBadRequest, err))
 		return
 	}
 
-	err = h.Service.DeleteCategoryByID(*id)
+	err = h.Service.DeleteCategoryByID(ctx, *id)
 	if err != nil {
 		c.Error(errs.NewAPIError(http.StatusInternalServerError, err))
 		return

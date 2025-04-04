@@ -106,8 +106,8 @@ func setupRouter(db *postgresql.PostgreSQL, mq queue.MessageQueue) *gin.Engine {
 	// invoiceService := services.NewInvoiceService(db)
 	// invoiceHandler := handlers.NewInvoiceHandler(invoiceService)
 
-	// categoryService := services.NewCategoryService(db)
-	// categoryHandler := handlers.NewCategoryHandler(categoryService)
+	categoryService := services.NewCategoryService(db)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	// paymentStatusService := services.NewPaymentStatusService(db)
 	// paymentStatusHandler := handlers.NewPaymentStatusHandler(paymentStatusService)
@@ -126,7 +126,7 @@ func setupRouter(db *postgresql.PostgreSQL, mq queue.MessageQueue) *gin.Engine {
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(v1.Group("/debts"), debtHandler)
 	// routes.RegisterInvoiceRoutes(v1.Group("/invoices"), invoiceHandler)
-	// routes.RegisterCategoryRoutes(v1.Group("/categories"), categoryHandler)
+	routes.RegisterCategoryRoutes(v1.Group("/categories"), categoryHandler)
 	// routes.RegisterPaymentStatusRoutes(v1.Group("/payment_status"), paymentStatusHandler)
 
 	return r

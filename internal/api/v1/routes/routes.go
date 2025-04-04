@@ -41,13 +41,13 @@ func RegisterDebtRoutes(router *gin.RouterGroup, handler *handlers.DebtHandler) 
 // 	router.DELETE("/:id", handler.DeleteInvoiceHandler)
 // }
 
-// func RegisterCategoryRoutes(router *gin.RouterGroup, handler *handlers.CategoryHandler) {
-// 	router.POST("", handler.CreateCategoryHandler)
-// 	router.GET("", handler.ListCategorysHandler)
-// 	router.GET("/:id", handler.GetCategoryByIDHandler)
-// 	router.PUT("/:id", handler.UpdateCategoryHandler)
-// 	router.DELETE("/:id", handler.DeleteCategoryHandler)
-// }
+func RegisterCategoryRoutes(router *gin.RouterGroup, handler *handlers.CategoryHandler) {
+	router.POST("", handler.CreateCategoryHandler)
+	router.GET("", handler.ListCategorysHandler)
+	router.GET("/:id", handler.GetCategoryByIDHandler)
+	router.PUT("/:id", handler.UpdateCategoryHandler)
+	router.DELETE("/:id", handler.DeleteCategoryHandler)
+}
 
 // func RegisterPaymentStatusRoutes(router *gin.RouterGroup, handler *handlers.PaymentStatusHandler) {
 // 	// TODO: continuar aqui

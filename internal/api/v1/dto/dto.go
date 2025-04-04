@@ -99,7 +99,7 @@ type CategoriesResponse struct {
 	// Nome da categoria
 	Name string `json:"name"`
 	// Descrião da categoria
-	Description float64 `json:"description"`
+	Description *string `json:"description"`
 }
 
 // PaymentStatus
