@@ -97,16 +97,24 @@ func (d *PostgreSQL) CountInvoices(ctx context.Context, flt dto.InvoiceFilters, 
 }
 
 func mapInvoiceToResponse(row *ent.Invoice) dto.InvoiceResponse {
+	var statusID *uuid.UUID
+	var statusName *string
+
+	if row.Edges.Status != nil {
+		statusID = &row.Edges.Status.ID
+		statusName = &row.Edges.Status.Name
+	}
+
 	return dto.InvoiceResponse{
 		ID:        row.ID,
 		Title:     row.Title,
 		Amount:    row.Amount,
-		StatusID:  row.Edges.Status.ID,
 		IssueDate: *utils.ToFormatDatePointer(row.IssueDate),
 		DueDate:   utils.ToFormatDatePointer(row.DueDate),
 		CreatedAt: *utils.ToFormatDateTimePointer(row.CreatedAt),
 		UpdatedAt: *utils.ToFormatDateTimePointer(row.UpdatedAt),
-		Status:    row.Edges.Status.Name,
+		StatusID:  statusID,
+		Status:    statusName,
 	}
 }
 

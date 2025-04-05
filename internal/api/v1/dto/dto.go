@@ -72,9 +72,10 @@ type InvoiceResponse struct {
 	// Data de vencimento no formato YYYY-MM-DD
 	DueDate *string `json:"due_date"`
 	// ID do status
-	StatusID uuid.UUID `json:"status_id"`
+	// TODO: deixar como obrigatorio
+	StatusID *uuid.UUID `json:"status_id"`
 	// Nome do status
-	Status string `json:"status"`
+	Status *string `json:"status"`
 	// Data de criação da fatura
 	CreatedAt string `json:"created_at"`
 	// Data da última atualização da fatura
