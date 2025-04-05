@@ -49,6 +49,9 @@ func RegisterCategoryRoutes(router *gin.RouterGroup, handler *handlers.CategoryH
 }
 
 func RegisterPaymentStatusRoutes(router *gin.RouterGroup, handler *handlers.PaymentStatusHandler) {
-	// TODO: continuar aqui
+	router.POST("", handler.CreatePaymentStatusHandler)
+	router.GET("", handler.ListPaymentStatussHandler)
 	router.GET("/:id", handler.GetPaymentStatusByIDHandler)
+	router.PUT("/:id", handler.UpdatePaymentStatusHandler)
+	router.DELETE("/:id", handler.DeletePaymentStatusHandler)
 }

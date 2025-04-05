@@ -116,7 +116,7 @@ func setupRouter(db repository.Database, mq queue.MessageQueue) *gin.Engine {
 	v1.Use(middlewares.UUIDMiddleware())
 	v1.Use(middlewares.ErrorMiddleware())
 
-	r.Static("/static", "./static")
+	r.StaticFile("/favicon.ico", "./static/favicon.ico")
 	routes.RegisterDocsRoutes(r.Group("/docs/v1"))
 	routes.RegisterDebtRoutes(v1.Group("/debts"), debtHandler)
 	routes.RegisterInvoiceRoutes(v1.Group("/invoices"), invoiceHandler)
