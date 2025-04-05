@@ -14,18 +14,14 @@ type Debt struct {
 	Amount       float64    `json:"amount"`
 	PurchaseDate time.Time  `json:"purchase_date"`
 	DueDate      time.Time  `json:"due_date"`
-	// TODO: ver como deixar isso daqui obrigatorio
+	// TODO: ele é obrigatorio no banco, ver depois como lidar com isso e o seu hook
 	StatusID     *uuid.UUID  `json:"status_id"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
 type Category struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
 	Description *string   `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type Invoice struct {
@@ -35,15 +31,10 @@ type Invoice struct {
 	IssueDate time.Time `json:"issue_date"`
 	DueDate   time.Time `json:"due_date"`
 	StatusID  uuid.UUID `json:"status_id"`
-	// TODO: colocar status name
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type PaymentStatus struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
 	Description *string   `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
 }

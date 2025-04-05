@@ -102,7 +102,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.DebtsResponse"
+                                "$ref": "#/definitions/dto.DebtResponse"
                             }
                         }
                     },
@@ -629,7 +629,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.DebtsResponse": {
+        "dto.DebtResponse": {
             "type": "object",
             "properties": {
                 "amount": {

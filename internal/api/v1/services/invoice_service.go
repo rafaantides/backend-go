@@ -46,11 +46,11 @@ func (s *InvoiceService) ParseInvoice(req dto.InvoiceRequest) (models.Invoice, e
 
 }
 
-func (s *InvoiceService) CreateInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
+func (s *InvoiceService) CreateInvoice(ctx context.Context, input models.Invoice) (*dto.InvoiceResponse, error) {
 	return s.DB.InsertInvoice(ctx, input)
 }
 
-func (s *InvoiceService) UpdateInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
+func (s *InvoiceService) UpdateInvoice(ctx context.Context, input models.Invoice) (*dto.InvoiceResponse, error) {
 	return s.DB.UpdateInvoice(ctx, input)
 }
 
@@ -68,7 +68,7 @@ func (s *InvoiceService) ListInvoices(ctx context.Context, flt dto.InvoiceFilter
 	return invoices, total, nil
 }
 
-func (s *InvoiceService) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*models.Invoice, error) {
+func (s *InvoiceService) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*dto.InvoiceResponse, error) {
 	return s.DB.GetInvoiceByID(ctx, id)
 }
 

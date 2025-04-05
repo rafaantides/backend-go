@@ -11,11 +11,12 @@ type DebtRequest struct {
 	Amount       string `json:"amount"`
 }
 
-type DebtsResponse struct {
+type DebtResponse struct {
 	// ID único do débito
 	ID uuid.UUID `json:"id"`
+	// ID da fatura associada
+	InvoiceID *string `json:"invoice_id"`
 	// Título da fatura associada
-	// TODO: colocar invoiceID
 	InvoiceTitle *string `json:"invoice_title"`
 	// Título do débito
 	Title string `json:"title"`
@@ -30,10 +31,9 @@ type DebtsResponse struct {
 	// Nome da categoria
 	Category *string `json:"category"`
 	// ID do status
-	// TODO: ver como manter obrigatorio
-	StatusID *uuid.UUID `json:"status_id"`
+	StatusID uuid.UUID `json:"status_id"`
 	// Nome do status
-	Status *string `json:"status"`
+	Status string `json:"status"`
 	// Data de criação do débito
 	CreatedAt string `json:"created_at"`
 	// Data da última atualização do débito
@@ -94,7 +94,7 @@ type CategoryRequest struct {
 	Description string `json:"description"`
 }
 
-type CategoriesResponse struct {
+type CategoryResponse struct {
 	// ID único da categoria
 	ID uuid.UUID `json:"id"`
 	// Nome da categoria

@@ -72,15 +72,15 @@ func (s *DebtService) ParseDebt(ctx context.Context, debtReq dto.DebtRequest) (m
 	}, nil
 }
 
-func (s *DebtService) CreateDebt(ctx context.Context, debt models.Debt) (*models.Debt, error) {
+func (s *DebtService) CreateDebt(ctx context.Context, debt models.Debt) (*dto.DebtResponse, error) {
 	return s.DB.InsertDebt(ctx, debt)
 }
 
-func (s *DebtService) UpdateDebt(ctx context.Context, debt models.Debt) (*models.Debt, error) {
+func (s *DebtService) UpdateDebt(ctx context.Context, debt models.Debt) (*dto.DebtResponse, error) {
 	return s.DB.UpdateDebt(ctx, debt)
 }
 
-func (s *DebtService) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, int, error) {
+func (s *DebtService) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, int, error) {
 	debts, err := s.DB.ListDebts(ctx, flt, pgn)
 	if err != nil {
 		return nil, 0, err
@@ -92,10 +92,9 @@ func (s *DebtService) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *p
 	}
 
 	return debts, total, nil
-
 }
 
-func (s *DebtService) GetDebtByID(ctx context.Context, id uuid.UUID) (*models.Debt, error) {
+func (s *DebtService) GetDebtByID(ctx context.Context, id uuid.UUID) (*dto.DebtResponse, error) {
 	return s.DB.GetDebtByID(ctx, id)
 }
 

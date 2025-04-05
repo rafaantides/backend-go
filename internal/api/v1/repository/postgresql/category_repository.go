@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (d *PostgreSQL) GetCategoryByID(ctx context.Context, id uuid.UUID) (*models.Category, error) {
+func (d *PostgreSQL) GetCategoryByID(ctx context.Context, id uuid.UUID) (*dto.CategoryResponse, error) {
 	row, err := d.Client.Category.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -51,7 +51,7 @@ func (d *PostgreSQL) DeleteCategoryByID(ctx context.Context, id uuid.UUID) error
 	return nil
 }
 
-func (d *PostgreSQL) InsertCategory(ctx context.Context, input models.Category) (*models.Category, error) {
+func (d *PostgreSQL) InsertCategory(ctx context.Context, input models.Category) (*dto.CategoryResponse, error) {
 	created, err := d.Client.Category.
 		Create().
 		SetName(input.Name).
@@ -65,7 +65,7 @@ func (d *PostgreSQL) InsertCategory(ctx context.Context, input models.Category) 
 	return newCategoryResponse(created)
 }
 
-func (d *PostgreSQL) UpdateCategory(ctx context.Context, input models.Category) (*models.Category, error) {
+func (d *PostgreSQL) UpdateCategory(ctx context.Context, input models.Category) (*dto.CategoryResponse, error) {
 	updated, err := d.Client.Category.
 		UpdateOneID(input.ID).
 		SetName(input.Name).
@@ -82,7 +82,7 @@ func (d *PostgreSQL) UpdateCategory(ctx context.Context, input models.Category) 
 	return newCategoryResponse(updated)
 }
 
-func (d *PostgreSQL) ListCategories(ctx context.Context, pgn *pagination.Pagination) ([]dto.CategoriesResponse, error) {
+func (d *PostgreSQL) ListCategories(ctx context.Context, pgn *pagination.Pagination) ([]dto.CategoryResponse, error) {
 	query := d.Client.Category.Query()
 
 	query = applyCategoryFilters(query, pgn)
@@ -94,7 +94,7 @@ func (d *PostgreSQL) ListCategories(ctx context.Context, pgn *pagination.Paginat
 		return nil, err
 	}
 
-	return newCategoriesResponse(data)
+	return newCategoryResponseList(data)
 }
 
 func (d *PostgreSQL) CountCategories(ctx context.Context, pgn *pagination.Pagination) (int, error) {
@@ -108,25 +108,29 @@ func (d *PostgreSQL) CountCategories(ctx context.Context, pgn *pagination.Pagina
 	return total, nil
 }
 
-func newCategoryResponse(row *ent.Category) (*models.Category, error) {
-	return &models.Category{
+func mapCategoryToResponse(row *ent.Category) dto.CategoryResponse {
+	return dto.CategoryResponse{
 		ID:          row.ID,
 		Name:        row.Name,
 		Description: row.Description,
-	}, nil
+	}
 }
 
-func newCategoriesResponse(rows []*ent.Category) ([]dto.CategoriesResponse, error) {
+func newCategoryResponse(row *ent.Category) (*dto.CategoryResponse, error) {
+	if row == nil {
+		return nil, nil
+	}
+	response := mapCategoryToResponse(row)
+	return &response, nil
+}
+
+func newCategoryResponseList(rows []*ent.Category) ([]dto.CategoryResponse, error) {
 	if rows == nil {
 		return nil, nil
 	}
-	response := make([]dto.CategoriesResponse, len(rows))
-	for i, row := range rows {
-		response[i] = dto.CategoriesResponse{
-			ID:          row.ID,
-			Name:        row.Name,
-			Description: row.Description,
-		}
+	response := make([]dto.CategoryResponse, 0, len(rows))
+	for _, row := range rows {
+		response = append(response, mapCategoryToResponse(row))
 	}
 	return response, nil
 }

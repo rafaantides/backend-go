@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (d *PostgreSQL) GetPaymentStatusByID(ctx context.Context, id uuid.UUID) (*models.PaymentStatus, error) {
+func (d *PostgreSQL) GetPaymentStatusByID(ctx context.Context, id uuid.UUID) (*dto.PaymentStatusResponse, error) {
 	row, err := d.Client.PaymentStatus.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -51,7 +51,7 @@ func (d *PostgreSQL) DeletePaymentStatusByID(ctx context.Context, id uuid.UUID) 
 	return nil
 }
 
-func (d *PostgreSQL) InsertPaymentStatus(ctx context.Context, input models.PaymentStatus) (*models.PaymentStatus, error) {
+func (d *PostgreSQL) InsertPaymentStatus(ctx context.Context, input models.PaymentStatus) (*dto.PaymentStatusResponse, error) {
 	created, err := d.Client.PaymentStatus.
 		Create().
 		SetName(input.Name).
@@ -65,7 +65,7 @@ func (d *PostgreSQL) InsertPaymentStatus(ctx context.Context, input models.Payme
 	return newPaymentStatusResponse(created)
 }
 
-func (d *PostgreSQL) UpdatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*models.PaymentStatus, error) {
+func (d *PostgreSQL) UpdatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*dto.PaymentStatusResponse, error) {
 	updated, err := d.Client.PaymentStatus.
 		UpdateOneID(input.ID).
 		SetName(input.Name).
@@ -94,7 +94,7 @@ func (d *PostgreSQL) ListPaymentStatus(ctx context.Context, pgn *pagination.Pagi
 		return nil, err
 	}
 
-	return newPaymentsStatusResponse(data)
+	return newPaymentStatusResponseList(data)
 }
 
 func (d *PostgreSQL) CountPaymentStatus(ctx context.Context, pgn *pagination.Pagination) (int, error) {
@@ -108,25 +108,29 @@ func (d *PostgreSQL) CountPaymentStatus(ctx context.Context, pgn *pagination.Pag
 	return total, nil
 }
 
-func newPaymentStatusResponse(row *ent.PaymentStatus) (*models.PaymentStatus, error) {
-	return &models.PaymentStatus{
+func mapPaymentStatusToResponse(row *ent.PaymentStatus) dto.PaymentStatusResponse {
+	return dto.PaymentStatusResponse{
 		ID:          row.ID,
 		Name:        row.Name,
 		Description: row.Description,
-	}, nil
+	}
 }
 
-func newPaymentsStatusResponse(rows []*ent.PaymentStatus) ([]dto.PaymentStatusResponse, error) {
+func newPaymentStatusResponse(row *ent.PaymentStatus) (*dto.PaymentStatusResponse, error) {
+	if row == nil {
+		return nil, nil
+	}
+	response := mapPaymentStatusToResponse(row)
+	return &response, nil
+}
+
+func newPaymentStatusResponseList(rows []*ent.PaymentStatus) ([]dto.PaymentStatusResponse, error) {
 	if rows == nil {
 		return nil, nil
 	}
-	response := make([]dto.PaymentStatusResponse, len(rows))
-	for i, row := range rows {
-		response[i] = dto.PaymentStatusResponse{
-			ID:          row.ID,
-			Name:        row.Name,
-			Description: row.Description,
-		}
+	response := make([]dto.PaymentStatusResponse, 0, len(rows))
+	for _, row := range rows {
+		response = append(response, mapPaymentStatusToResponse(row))
 	}
 	return response, nil
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (d *PostgreSQL) GetDebtByID(ctx context.Context, id uuid.UUID) (*models.Debt, error) {
+func (d *PostgreSQL) GetDebtByID(ctx context.Context, id uuid.UUID) (*dto.DebtResponse, error) {
 	row, err := d.Client.Debt.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -39,7 +39,7 @@ func (d *PostgreSQL) DeleteDebtByID(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (d *PostgreSQL) InsertDebt(ctx context.Context, input models.Debt) (*models.Debt, error) {
+func (d *PostgreSQL) InsertDebt(ctx context.Context, input models.Debt) (*dto.DebtResponse, error) {
 	created, err := d.Client.Debt.
 		Create().
 		SetTitle(input.Title).
@@ -57,7 +57,7 @@ func (d *PostgreSQL) InsertDebt(ctx context.Context, input models.Debt) (*models
 	return newDebtResponse(created)
 }
 
-func (d *PostgreSQL) UpdateDebt(ctx context.Context, input models.Debt) (*models.Debt, error) {
+func (d *PostgreSQL) UpdateDebt(ctx context.Context, input models.Debt) (*dto.DebtResponse, error) {
 	updated, err := d.Client.Debt.
 		UpdateOneID(input.ID).
 		SetTitle(input.Title).
@@ -78,7 +78,7 @@ func (d *PostgreSQL) UpdateDebt(ctx context.Context, input models.Debt) (*models
 	return newDebtResponse(updated)
 }
 
-func (d *PostgreSQL) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
+func (d *PostgreSQL) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, error) {
 	query := d.Client.Debt.Query()
 
 	query = applyDebtFilters(query, flt, pgn)
@@ -90,7 +90,7 @@ func (d *PostgreSQL) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pa
 		return nil, err
 	}
 
-	return newDebtsResponse(data)
+	return newDebtResponseList(data)
 }
 
 func (d *PostgreSQL) CountDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
@@ -104,41 +104,38 @@ func (d *PostgreSQL) CountDebts(ctx context.Context, flt dto.DebtFilters, pgn *p
 	return total, nil
 }
 
-func newDebtResponse(row *ent.Debt) (*models.Debt, error) {
-	return &models.Debt{
+func mapDebtToResponse(row *ent.Debt) dto.DebtResponse {
+	return dto.DebtResponse{
 		ID:           row.ID,
 		Title:        row.Title,
-		InvoiceID:    &row.Edges.Invoice.ID,
-		CategoryID:   &row.Edges.Category.ID,
 		Amount:       row.Amount,
-		PurchaseDate: row.PurchaseDate,
-		DueDate:      row.DueDate,
-		StatusID:     &row.Edges.Status.ID,
-		CreatedAt:    row.CreatedAt,
-		UpdatedAt:    row.UpdatedAt,
-	}, nil
+		PurchaseDate: *utils.ToFormatDateTimePointer(row.PurchaseDate),
+		DueDate:      utils.ToFormatDatePointer(row.DueDate),
+		CategoryID:   &row.Edges.Category.ID,
+		StatusID:     row.Edges.Status.ID,
+		Status:       row.Edges.Status.Name,
+		CreatedAt:    *utils.ToFormatDateTimePointer(row.CreatedAt),
+		UpdatedAt:    *utils.ToFormatDateTimePointer(row.UpdatedAt),
+		Category:     &row.Edges.Category.Name,
+		InvoiceTitle: &row.Edges.Invoice.Title,
+	}
 }
 
-func newDebtsResponse(rows []*ent.Debt) ([]dto.DebtsResponse, error) {
+func newDebtResponse(row *ent.Debt) (*dto.DebtResponse, error) {
+	if row == nil {
+		return nil, nil
+	}
+	response := mapDebtToResponse(row)
+	return &response, nil
+}
+
+func newDebtResponseList(rows []*ent.Debt) ([]dto.DebtResponse, error) {
 	if rows == nil {
 		return nil, nil
 	}
-	response := make([]dto.DebtsResponse, len(rows))
+	response := make([]dto.DebtResponse, 0, len(rows))
 	for _, row := range rows {
-		response = append(response, dto.DebtsResponse{
-			ID:           row.ID,
-			Title:        row.Title,
-			Amount:       row.Amount,
-			PurchaseDate: *utils.ToFormatDateTimePointer(row.PurchaseDate),
-			DueDate:      utils.ToFormatDatePointer(row.DueDate),
-			CategoryID:   &row.Edges.Category.ID,
-			StatusID:     &row.Edges.Status.ID,
-			CreatedAt:    *utils.ToFormatDateTimePointer(row.CreatedAt),
-			UpdatedAt:    *utils.ToFormatDateTimePointer(row.UpdatedAt),
-			Category:     &row.Edges.Category.Name,
-			InvoiceTitle: &row.Edges.Invoice.Title,
-			Status:       &row.Edges.Status.Name,
-		})
+		response = append(response, mapDebtToResponse(row))
 	}
 	return response, nil
 }

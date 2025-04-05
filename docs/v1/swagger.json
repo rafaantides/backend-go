@@ -91,7 +91,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/dto.DebtsResponse"
+                "$ref": "#/definitions/dto.DebtResponse"
               }
             }
           },
@@ -564,7 +564,7 @@
         }
       }
     },
-    "dto.DebtsResponse": {
+    "dto.DebtResponse": {
       "type": "object",
       "properties": {
         "amount": {

@@ -13,7 +13,7 @@ definitions:
       title:
         type: string
     type: object
-  dto.DebtsResponse:
+  dto.DebtResponse:
     properties:
       amount:
         description: Valor do débito
@@ -207,7 +207,7 @@ paths:
           description: Lista de débitos
           schema:
             items:
-              $ref: '#/definitions/dto.DebtsResponse'
+              $ref: '#/definitions/dto.DebtResponse'
             type: array
         "400":
           description: Parâmetros inválidos

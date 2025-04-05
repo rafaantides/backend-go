@@ -26,11 +26,11 @@ func (s *PaymentStatusService) ParsePaymentStatus(req dto.PaymentStatusRequest) 
 
 }
 
-func (s *PaymentStatusService) CreatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*models.PaymentStatus, error) {
+func (s *PaymentStatusService) CreatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*dto.PaymentStatusResponse, error) {
 	return s.DB.InsertPaymentStatus(ctx, input)
 }
 
-func (s *PaymentStatusService) UpdatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*models.PaymentStatus, error) {
+func (s *PaymentStatusService) UpdatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*dto.PaymentStatusResponse, error) {
 	return s.DB.UpdatePaymentStatus(ctx, input)
 }
 
@@ -48,7 +48,7 @@ func (s *PaymentStatusService) ListPaymentStatus(ctx context.Context, pgn *pagin
 	return invoices, total, nil
 }
 
-func (s *PaymentStatusService) GetPaymentStatusByID(ctx context.Context, id uuid.UUID) (*models.PaymentStatus, error) {
+func (s *PaymentStatusService) GetPaymentStatusByID(ctx context.Context, id uuid.UUID) (*dto.PaymentStatusResponse, error) {
 	return s.DB.GetPaymentStatusByID(ctx, id)
 }
 

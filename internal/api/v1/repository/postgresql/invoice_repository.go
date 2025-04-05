@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (d *PostgreSQL) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*models.Invoice, error) {
+func (d *PostgreSQL) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*dto.InvoiceResponse, error) {
 	row, err := d.Client.Invoice.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -36,7 +36,7 @@ func (d *PostgreSQL) DeleteInvoiceByID(ctx context.Context, id uuid.UUID) error 
 	return nil
 }
 
-func (d *PostgreSQL) InsertInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
+func (d *PostgreSQL) InsertInvoice(ctx context.Context, input models.Invoice) (*dto.InvoiceResponse, error) {
 	created, err := d.Client.Invoice.
 		Create().
 		SetTitle(input.Title).
@@ -44,14 +44,14 @@ func (d *PostgreSQL) InsertInvoice(ctx context.Context, input models.Invoice) (*
 		SetIssueDate(input.IssueDate).
 		SetDueDate(input.DueDate).
 		Save(ctx)
-		
+
 	if err != nil {
-		return nil, errs.FailedToSave("categories", err)
+		return nil, errs.FailedToSave("invoices", err)
 	}
 	return newInvoiceResponse(created)
 }
 
-func (d *PostgreSQL) UpdateInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
+func (d *PostgreSQL) UpdateInvoice(ctx context.Context, input models.Invoice) (*dto.InvoiceResponse, error) {
 	updated, err := d.Client.Invoice.
 		UpdateOneID(input.ID).
 		SetTitle(input.Title).
@@ -65,7 +65,7 @@ func (d *PostgreSQL) UpdateInvoice(ctx context.Context, input models.Invoice) (*
 		if ent.IsNotFound(err) {
 			return nil, errs.ErrNotFound
 		}
-		return nil, errs.FailedToSave("categories", err)
+		return nil, errs.FailedToSave("invoices", err)
 	}
 	return newInvoiceResponse(updated)
 }
@@ -82,7 +82,7 @@ func (d *PostgreSQL) ListInvoices(ctx context.Context, flt dto.InvoiceFilters, p
 		return nil, err
 	}
 
-	return newInvoicesResponse(data)
+	return newInvoiceResponseList(data)
 }
 
 func (d *PostgreSQL) CountInvoices(ctx context.Context, flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
@@ -96,37 +96,35 @@ func (d *PostgreSQL) CountInvoices(ctx context.Context, flt dto.InvoiceFilters, 
 	return total, nil
 }
 
-func newInvoiceResponse(row *ent.Invoice) (*models.Invoice, error) {
-	return &models.Invoice{
+func mapInvoiceToResponse(row *ent.Invoice) dto.InvoiceResponse {
+	return dto.InvoiceResponse{
 		ID:        row.ID,
 		Title:     row.Title,
 		Amount:    row.Amount,
 		StatusID:  row.Edges.Status.ID,
-		IssueDate: row.IssueDate,
-		DueDate:   row.DueDate,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
-	}, nil
-
+		IssueDate: *utils.ToFormatDatePointer(row.IssueDate),
+		DueDate:   utils.ToFormatDatePointer(row.DueDate),
+		CreatedAt: *utils.ToFormatDateTimePointer(row.CreatedAt),
+		UpdatedAt: *utils.ToFormatDateTimePointer(row.UpdatedAt),
+		Status:    row.Edges.Status.Name,
+	}
 }
 
-func newInvoicesResponse(rows []*ent.Invoice) ([]dto.InvoiceResponse, error) {
+func newInvoiceResponse(row *ent.Invoice) (*dto.InvoiceResponse, error) {
+	if row == nil {
+		return nil, nil
+	}
+	response := mapInvoiceToResponse(row)
+	return &response, nil
+}
+
+func newInvoiceResponseList(rows []*ent.Invoice) ([]dto.InvoiceResponse, error) {
 	if rows == nil {
 		return nil, nil
 	}
-	response := make([]dto.InvoiceResponse, len(rows))
-	for i, row := range rows {
-		response[i] = dto.InvoiceResponse{
-			ID:        row.ID,
-			Title:     row.Title,
-			Amount:    row.Amount,
-			StatusID:  row.Edges.Status.ID,
-			IssueDate: *utils.ToFormatDatePointer(row.IssueDate),
-			DueDate:   utils.ToFormatDatePointer(row.DueDate),
-			CreatedAt: *utils.ToFormatDateTimePointer(row.CreatedAt),
-			UpdatedAt: *utils.ToFormatDateTimePointer(row.UpdatedAt),
-			Status:    row.Edges.Status.Name,
-		}
+	response := make([]dto.InvoiceResponse, 0, len(rows))
+	for _, row := range rows {
+		response = append(response, mapInvoiceToResponse(row))
 	}
 	return response, nil
 }
