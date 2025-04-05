@@ -35,6 +35,7 @@ type Invoice struct {
 	IssueDate time.Time `json:"issue_date"`
 	DueDate   time.Time `json:"due_date"`
 	StatusID  uuid.UUID `json:"status_id"`
+	// TODO: colocar status name
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

@@ -4,185 +4,173 @@ import (
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/v1/dto"
 	"backend-go/internal/api/v1/repository/models"
+	"backend-go/pkg/ent"
+	"backend-go/pkg/ent/invoice"
+	"backend-go/pkg/ent/paymentstatus"
 	"backend-go/pkg/pagination"
+	"backend-go/pkg/utils"
 	"context"
-	"database/sql"
-	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 func (d *PostgreSQL) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*models.Invoice, error) {
-	row := d.DB.QueryRow(`SELECT * FROM invoices WHERE id = $1`, id)
-	data, err := newInvoiceResponse(row)
+	row, err := d.Client.Invoice.Get(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if ent.IsNotFound(err) {
 			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
-	return &data, nil
+	return newInvoiceResponse(row)
 }
 
 func (d *PostgreSQL) DeleteInvoiceByID(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM invoices WHERE id = $1`
-	result, err := d.DB.Exec(query, id)
+	err := d.Client.Invoice.DeleteOneID(id).Exec(ctx)
 	if err != nil {
+		if ent.IsNotFound(err) {
+			return errs.ErrNotFound
+		}
 		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errs.ErrNotFound
 	}
 	return nil
 }
 
 func (d *PostgreSQL) InsertInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
-	query := `INSERT INTO debts (title, amount, issue_date, due_date)
-			  VALUES ($1, $2, $3, $4)
-			  RETURNING *`
-
-	row := d.DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate)
-	data, err := newInvoiceResponse(row)
+	created, err := d.Client.Invoice.
+		Create().
+		SetTitle(input.Title).
+		SetAmount(input.Amount).
+		SetIssueDate(input.IssueDate).
+		SetDueDate(input.DueDate).
+		Save(ctx)
 	if err != nil {
-		return models.Invoice{}, fmt.Errorf("failed to insert invoice: %w", err)
+		return nil, errs.FailedToSave("categories", err)
 	}
-	return data, nil
+	return newInvoiceResponse(created)
 }
 
 func (d *PostgreSQL) UpdateInvoice(ctx context.Context, input models.Invoice) (*models.Invoice, error) {
-	query := `
-		UPDATE invoices
-		SET title = $1, amount = $2, issue_date = $3, due_date = $4, status_id = $5
-		WHERE id = $6
-		RETURNING *
-	`
-	row := d.DB.QueryRow(query, input.Title, input.Amount, input.IssueDate, input.DueDate, input.StatusID, input.ID)
-	data, err := newInvoiceResponse(row)
+	updated, err := d.Client.Invoice.
+		UpdateOneID(input.ID).
+		SetTitle(input.Title).
+		SetAmount(input.Amount).
+		SetIssueDate(input.IssueDate).
+		SetDueDate(input.DueDate).
+		SetStatusID(input.StatusID).
+		Save(ctx)
+
 	if err != nil {
-		return models.Invoice{}, fmt.Errorf("failed to update debt: %w", err)
+		if ent.IsNotFound(err) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, errs.FailedToSave("categories", err)
 	}
-	return data, nil
+	return newInvoiceResponse(updated)
 }
 
 func (d *PostgreSQL) ListInvoices(ctx context.Context, flt dto.InvoiceFilters, pgn *pagination.Pagination) ([]dto.InvoiceResponse, error) {
-	query := `
-        SELECT
-            i.id,
-			i.title,
-			i.amount,
-			i.issue_date,
-			i.due_date,
-			i.status_id,
-            i.created_at,
-			i.updated_at,
-			s.name AS status
-		FROM invoices i
-		LEFT JOIN payment_status s ON i.status_id = s.id
-    `
+	query := d.Client.Invoice.Query()
 
-	filterQuery, args := buildInvoiceFilters(flt, pgn)
-	query += filterQuery
+	query = applyInvoiceFilters(query, flt, pgn)
+	query = query.Order(ent.Desc(pgn.OrderBy))
+	query = query.Limit(pgn.PageSize).Offset(pgn.Offset())
 
-	argIndex := len(args) + 1
-	query += fmt.Sprintf(" ORDER BY i.%s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pgn.PageSize, pgn.Offset())
-
-	rows, err := d.DB.Query(query, args...)
+	data, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return newInvoicesResponse(rows)
+	return newInvoicesResponse(data)
 }
 
 func (d *PostgreSQL) CountInvoices(ctx context.Context, flt dto.InvoiceFilters, pgn *pagination.Pagination) (int, error) {
-	query := "SELECT COUNT(*) FROM invoices i LEFT JOIN payment_status s ON i.status_id = s.id"
-	filterQuery, args := buildInvoiceFilters(flt, pgn)
-	query += filterQuery
+	query := d.Client.Invoice.Query()
+	query = applyInvoiceFilters(query, flt, pgn)
 
-	var total int
-	err := d.DB.QueryRow(query, args...).Scan(&total)
-	return total, err
+	total, err := query.Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
 }
 
-func newInvoiceResponse(row *sql.Row) (models.Invoice, error) {
-	var data models.Invoice
-	if err := row.Scan(
-		&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate,
-		&data.StatusID, &data.CreatedAt, &data.UpdatedAt,
-	); err != nil {
-		return models.Invoice{}, err
+func newInvoiceResponse(row *ent.Invoice) (*models.Invoice, error) {
+	return &models.Invoice{
+		ID:        row.ID,
+		Title:     row.Title,
+		Amount:    row.Amount,
+		StatusID:  row.Edges.Status.ID,
+		IssueDate: row.IssueDate,
+		DueDate:   row.DueDate,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: row.UpdatedAt,
+	}, nil
+
+}
+
+func newInvoicesResponse(rows []*ent.Invoice) ([]dto.InvoiceResponse, error) {
+	if rows == nil {
+		return nil, nil
 	}
+	data := make([]dto.InvoiceResponse, len(rows))
+	for i, row := range rows {
+		data[i] = dto.InvoiceResponse{
+			ID:        row.ID,
+			Title:     row.Title,
+			Amount:    row.Amount,
+			StatusID:  row.Edges.Status.ID,
+			IssueDate: *utils.ToFormatDateTimePointer(row.IssueDate),
+			DueDate:   utils.ToFormatDatePointer(row.DueDate),
+			CreatedAt: *utils.ToFormatDateTimePointer(row.CreatedAt),
+			UpdatedAt: *utils.ToFormatDateTimePointer(row.UpdatedAt),
+			Status:    row.Edges.Status.Name,
+		}
+	}
+
 	return data, nil
 }
 
-func newInvoicesResponse(rows *sql.Rows) ([]dto.InvoiceResponse, error) {
-	defer rows.Close()
-	response := make([]dto.InvoiceResponse, 0)
-	for rows.Next() {
-		var data dto.InvoiceResponse
-		if err := rows.Scan(
-			&data.ID, &data.Title, &data.Amount, &data.IssueDate, &data.DueDate,
-			&data.StatusID, &data.CreatedAt, &data.UpdatedAt, &data.Status,
-		); err != nil {
-			return make([]dto.InvoiceResponse, 0), err
-		}
-		response = append(response, data)
-	}
-	return response, nil
-}
-
-func buildInvoiceFilters(flt dto.InvoiceFilters, pgn *pagination.Pagination) (string, []any) {
-	var conditions []string
-	var args []any
-	argIndex := 1
-
+func applyInvoiceFilters(query *ent.InvoiceQuery, flt dto.InvoiceFilters, pgn *pagination.Pagination) *ent.InvoiceQuery {
 	if pgn.Search != "" {
-		conditions = append(conditions, fmt.Sprintf(
-			"(i.title ILIKE $%d OR s.name ILIKE $%d)",
-			argIndex, argIndex+1,
-		))
-		args = append(args, "%"+pgn.Search+"%", "%"+pgn.Search+"%")
-		argIndex += 2
+		query = query.Where(
+			invoice.Or(
+				invoice.TitleContainsFold(pgn.Search),
+				invoice.HasStatusWith(
+					paymentstatus.NameContainsFold(pgn.Search),
+				),
+			),
+		)
 	}
+
 	if flt.StatusID != nil {
-		conditions = append(conditions, fmt.Sprintf("i.status_id = ANY($%d)", argIndex))
-		args = append(args, pq.Array(*flt.StatusID))
-		argIndex++
+		statusIds := utils.ToUUIDSlice(*flt.StatusID)
+		if len(statusIds) > 0 {
+			query = query.Where(
+				invoice.HasStatusWith(paymentstatus.IDIn(statusIds...)),
+			)
+		}
 	}
+
 	if flt.MinAmount != nil {
-		conditions = append(conditions, fmt.Sprintf("i.amount >= $%d", argIndex))
-		args = append(args, *flt.MinAmount)
-		argIndex++
+		query = query.Where(
+			invoice.AmountGTE(*flt.MinAmount),
+		)
 	}
+
 	if flt.MaxAmount != nil {
-		conditions = append(conditions, fmt.Sprintf("i.amount <= $%d", argIndex))
-		args = append(args, *flt.MaxAmount)
-		argIndex++
-	}
-	if flt.StartDate != nil {
-		conditions = append(conditions, fmt.Sprintf("i.issue_date >= $%d", argIndex))
-		args = append(args, *flt.StartDate)
-		argIndex++
-	}
-	if flt.EndDate != nil {
-		conditions = append(conditions, fmt.Sprintf("i.issue_date <= $%d", argIndex))
-		args = append(args, *flt.EndDate)
-		argIndex++
+		query = query.Where(
+			invoice.AmountLTE(*flt.MaxAmount),
+		)
 	}
 
-	filterQuery := ""
-	if len(conditions) > 0 {
-		filterQuery = " WHERE " + strings.Join(conditions, " AND ")
+	if t := utils.ToTimePointer(flt.StartDate); t != nil {
+		query = query.Where(invoice.IssueDateGTE(*t))
 	}
 
-	return filterQuery, args
+	if t := utils.ToTimePointer(flt.EndDate); t != nil {
+		query = query.Where(invoice.IssueDateLTE(*t))
+	}
+
+	return query
 }

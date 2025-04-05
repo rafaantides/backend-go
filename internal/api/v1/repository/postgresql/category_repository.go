@@ -57,6 +57,7 @@ func (d *PostgreSQL) InsertCategory(ctx context.Context, input models.Category) 
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		Save(ctx)
+
 	if err != nil {
 		return nil, errs.FailedToSave("categories", err)
 	}
@@ -70,12 +71,14 @@ func (d *PostgreSQL) UpdateCategory(ctx context.Context, input models.Category) 
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		Save(ctx)
+
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, errs.ErrNotFound
 		}
 		return nil, errs.FailedToSave("categories", err)
 	}
+
 	return newCategoryResponse(updated)
 }
 
@@ -117,24 +120,23 @@ func newCategoriesResponse(rows []*ent.Category) ([]dto.CategoriesResponse, erro
 	if rows == nil {
 		return nil, nil
 	}
-	categories := make([]dto.CategoriesResponse, len(rows))
+	data := make([]dto.CategoriesResponse, len(rows))
 	for i, row := range rows {
-		categories[i] = dto.CategoriesResponse{
+		data[i] = dto.CategoriesResponse{
 			ID:          row.ID,
 			Name:        row.Name,
 			Description: row.Description,
 		}
 	}
-	return categories, nil
+	return data, nil
 }
 
 func applyCategoryFilters(query *ent.CategoryQuery, pgn *pagination.Pagination) *ent.CategoryQuery {
 	if pgn.Search != "" {
-		searchTerm := "%" + pgn.Search + "%"
 		query = query.Where(
 			category.Or(
-				category.NameContainsFold(searchTerm),
-				category.DescriptionContainsFold(searchTerm),
+				category.NameContainsFold(pgn.Search),
+				category.DescriptionContainsFold(pgn.Search),
 			),
 		)
 	}
