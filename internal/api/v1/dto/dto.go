@@ -15,7 +15,7 @@ type DebtResponse struct {
 	// ID único do débito
 	ID uuid.UUID `json:"id"`
 	// ID da fatura associada
-	InvoiceID *string `json:"invoice_id"`
+	InvoiceID *uuid.UUID `json:"invoice_id"`
 	// Título da fatura associada
 	InvoiceTitle *string `json:"invoice_title"`
 	// Título do débito
@@ -31,9 +31,10 @@ type DebtResponse struct {
 	// Nome da categoria
 	Category *string `json:"category"`
 	// ID do status
-	StatusID uuid.UUID `json:"status_id"`
+	// TODO: deixar com oobrigatorio
+	StatusID *uuid.UUID `json:"status_id"`
 	// Nome do status
-	Status string `json:"status"`
+	Status *string `json:"status"`
 	// Data de criação do débito
 	CreatedAt string `json:"created_at"`
 	// Data da última atualização do débito

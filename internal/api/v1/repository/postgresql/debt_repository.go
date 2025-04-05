@@ -79,7 +79,10 @@ func (d *PostgreSQL) UpdateDebt(ctx context.Context, input models.Debt) (*dto.De
 }
 
 func (d *PostgreSQL) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtResponse, error) {
-	query := d.Client.Debt.Query()
+	query := d.Client.Debt.Query().
+		WithStatus().
+		WithCategory().
+		WithInvoice()
 
 	query = applyDebtFilters(query, flt, pgn)
 	query = query.Order(ent.Desc(pgn.OrderBy))
@@ -105,19 +108,42 @@ func (d *PostgreSQL) CountDebts(ctx context.Context, flt dto.DebtFilters, pgn *p
 }
 
 func mapDebtToResponse(row *ent.Debt) dto.DebtResponse {
+	var categoryID *uuid.UUID
+	var categoryName *string
+	var invoiceID *uuid.UUID
+	var invoiceTitle *string
+	var statusID *uuid.UUID
+	var statusName *string
+
+	if row.Edges.Category != nil {
+		categoryID = &row.Edges.Category.ID
+		categoryName = &row.Edges.Category.Name
+	}
+
+	if row.Edges.Invoice != nil {
+		invoiceID = &row.Edges.Invoice.ID
+		invoiceTitle = &row.Edges.Invoice.Title
+	}
+
+	if row.Edges.Status != nil {
+		statusID = &row.Edges.Status.ID
+		statusName = &row.Edges.Status.Name
+	}
+
 	return dto.DebtResponse{
 		ID:           row.ID,
 		Title:        row.Title,
 		Amount:       row.Amount,
 		PurchaseDate: *utils.ToFormatDateTimePointer(row.PurchaseDate),
 		DueDate:      utils.ToFormatDatePointer(row.DueDate),
-		CategoryID:   &row.Edges.Category.ID,
-		StatusID:     row.Edges.Status.ID,
-		Status:       row.Edges.Status.Name,
+		CategoryID:   categoryID,
+		Category:     categoryName,
+		StatusID:     statusID,
+		Status:       statusName,
 		CreatedAt:    *utils.ToFormatDateTimePointer(row.CreatedAt),
 		UpdatedAt:    *utils.ToFormatDateTimePointer(row.UpdatedAt),
-		Category:     &row.Edges.Category.Name,
-		InvoiceTitle: &row.Edges.Invoice.Title,
+		InvoiceID:    invoiceID,
+		InvoiceTitle: invoiceTitle,
 	}
 }
 

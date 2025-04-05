@@ -8,6 +8,7 @@ import (
 	repository "backend-go/internal/api/v1/repository/interfaces"
 	"backend-go/internal/api/v1/repository/models"
 	"context"
+	"log"
 
 	"backend-go/pkg/pagination"
 	"backend-go/pkg/utils"

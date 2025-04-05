@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
+	"backend-go/internal/api/v1/repository/models"
 	"backend-go/internal/api/v1/repository/postgresql"
 	"backend-go/pkg/ent/category"
 	"backend-go/pkg/ent/paymentstatus"
@@ -41,6 +44,10 @@ func runSeed() {
 
 	if err := seedCategories(ctx, db); err != nil {
 		log.Fatalf("erro ao criar categories: %v", err)
+	}
+
+	if err := seedDebts(ctx, db, "./static/json/debts.json"); err != nil {
+		log.Fatalf("erro ao criar debts: %v", err)
 	}
 
 	fmt.Println("✅ Seed concluído com sucesso!")
@@ -111,6 +118,34 @@ func seedCategories(ctx context.Context, db *postgresql.PostgreSQL) error {
 			return err
 		}
 		fmt.Printf("✅ Criado: %s\n", name)
+	}
+	return nil
+}
+
+func seedDebts(ctx context.Context, db *postgresql.PostgreSQL, jsonPath string) error {
+	data, err := os.ReadFile(jsonPath)
+	if err != nil {
+		return fmt.Errorf("erro ao ler arquivo JSON: %w", err)
+	}
+
+	var debts []models.Debt
+	if err := json.Unmarshal(data, &debts); err != nil {
+		return fmt.Errorf("erro ao parsear JSON: %w", err)
+	}
+
+	for _, d := range debts {
+		_, err := db.Client.Debt.
+			Create().
+			SetTitle(d.Title).
+			SetAmount(d.Amount).
+			SetPurchaseDate(d.PurchaseDate).
+			SetDueDate(d.DueDate).
+			// SetInvoiceID e SetCategoryID são opcionais
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("erro ao criar dívida '%s': %w", d.Title, err)
+		}
+		fmt.Printf("✅ Dívida criada: %s\n", d.Title)
 	}
 	return nil
 }
