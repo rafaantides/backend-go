@@ -28,7 +28,7 @@ func (d *PostgreSQL) GetCategoryIDByName(ctx context.Context, name *string) (*uu
 		return nil, nil
 	}
 
-	category, err := d.Client.Category.Query().Where(category.NameEQ(*name)).Only(ctx)
+	data, err := d.Client.Category.Query().Where(category.NameEQ(*name)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, errs.ErrNotFound
@@ -36,7 +36,7 @@ func (d *PostgreSQL) GetCategoryIDByName(ctx context.Context, name *string) (*uu
 		return nil, err
 	}
 
-	id := category.ID
+	id := data.ID
 	return &id, nil
 }
 

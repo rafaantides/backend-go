@@ -4,167 +4,141 @@ import (
 	"backend-go/internal/api/errs"
 	"backend-go/internal/api/v1/dto"
 	"backend-go/internal/api/v1/repository/models"
+	"backend-go/pkg/ent"
+	"backend-go/pkg/ent/paymentstatus"
 	"backend-go/pkg/pagination"
 	"context"
-	"database/sql"
-	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 )
 
 func (d *PostgreSQL) GetPaymentStatusByID(ctx context.Context, id uuid.UUID) (*models.PaymentStatus, error) {
-	row := d.DB.QueryRow(`SELECT * FROM payment_status WHERE id = $1`, id)
-	data, err := newPaymentStatusResponse(row)
-
+	row, err := d.Client.PaymentStatus.Get(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if ent.IsNotFound(err) {
 			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
-
-	return &data, nil
+	return newPaymentStatusResponse(row)
 }
 
 func (d *PostgreSQL) GetPaymentStatusIDByName(ctx context.Context, name *string) (*uuid.UUID, error) {
 	if name == nil {
 		return nil, nil
 	}
-	var id uuid.UUID
-	err := d.DB.QueryRow(`SELECT id FROM payment_status WHERE name = $1`, name).Scan(&id)
+
+	data, err := d.Client.PaymentStatus.Query().Where(paymentstatus.NameEQ(*name)).Only(ctx)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if ent.IsNotFound(err) {
 			return nil, errs.ErrNotFound
 		}
 		return nil, err
 	}
 
+	id := data.ID
 	return &id, nil
 }
 
 func (d *PostgreSQL) DeletePaymentStatusByID(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM payment_status WHERE id = $1`
-	result, err := d.DB.Exec(query, id)
+	err := d.Client.PaymentStatus.DeleteOneID(id).Exec(ctx)
 	if err != nil {
+		if ent.IsNotFound(err) {
+			return errs.ErrNotFound
+		}
 		return err
 	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errs.ErrNotFound
-	}
-
 	return nil
 }
 
 func (d *PostgreSQL) InsertPaymentStatus(ctx context.Context, input models.PaymentStatus) (*models.PaymentStatus, error) {
-	query := `INSERT INTO payment_status (name, description)
-			  VALUES ($1, $2)
-			  RETURNING id, name, description`
+	created, err := d.Client.PaymentStatus.
+		Create().
+		SetName(input.Name).
+		SetNillableDescription(input.Description).
+		Save(ctx)
 
-	row := d.DB.QueryRow(query, input.Name, input.Description)
-	data, err := newPaymentStatusResponse(row)
 	if err != nil {
-		return models.PaymentStatus{}, errs.FailedToSave("payment_status", err)
+		return nil, errs.FailedToSave("payment_status", err)
 	}
 
-	return data, nil
+	return newPaymentStatusResponse(created)
 }
 
 func (d *PostgreSQL) UpdatePaymentStatus(ctx context.Context, input models.PaymentStatus) (*models.PaymentStatus, error) {
-	query := `
-		UPDATE payment_status
-		SET name = $1, description = $2
-		WHERE id = $3
-		RETURNING *
-	`
+	updated, err := d.Client.PaymentStatus.
+		UpdateOneID(input.ID).
+		SetName(input.Name).
+		SetNillableDescription(input.Description).
+		Save(ctx)
 
-	row := d.DB.QueryRow(query, input.Name, input.Description)
-	data, err := newPaymentStatusResponse(row)
 	if err != nil {
-		return models.PaymentStatus{}, errs.FailedToSave("payment_status", err)
+		if ent.IsNotFound(err) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, errs.FailedToSave("payment_status", err)
 	}
-	return data, nil
+
+	return newPaymentStatusResponse(updated)
 }
 
 func (d *PostgreSQL) ListPaymentStatus(ctx context.Context, pgn *pagination.Pagination) ([]dto.PaymentStatusResponse, error) {
-	query := `
-        SELECT
-			id,
-            name,
-			description
-		FROM payment_status
-    `
+	query := d.Client.PaymentStatus.Query()
 
-	filterQuery, args := buildPaymentStatusFilters(pgn)
-	query += filterQuery
+	query = applyPaymentStatusFilters(query, pgn)
+	query = query.Order(ent.Desc(pgn.OrderBy))
+	query = query.Limit(pgn.PageSize).Offset(pgn.Offset())
 
-	argIndex := len(args) + 1
-	query += fmt.Sprintf(" ORDER BY %s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
-	args = append(args, pgn.PageSize, pgn.Offset())
-
-	rows, err := d.DB.Query(query, args...)
+	data, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return newPaymentsStatusResponse(rows)
+	return newPaymentsStatusResponse(data)
 }
 
 func (d *PostgreSQL) CountPaymentStatus(ctx context.Context, pgn *pagination.Pagination) (int, error) {
-	query := "SELECT COUNT(*) FROM payment_status"
-	filterQuery, args := buildPaymentStatusFilters(pgn)
-	query += filterQuery
+	query := d.Client.PaymentStatus.Query()
+	query = applyPaymentStatusFilters(query, pgn)
 
-	var total int
-	err := d.DB.QueryRow(query, args...).Scan(&total)
-	return total, err
-}
-
-func newPaymentStatusResponse(row *sql.Row) (models.PaymentStatus, error) {
-	var data models.PaymentStatus
-	if err := row.Scan(&data.ID, &data.Name, &data.Description); err != nil {
-		return models.PaymentStatus{}, err
+	total, err := query.Count(ctx)
+	if err != nil {
+		return 0, err
 	}
-	return data, nil
+	return total, nil
 }
 
-func newPaymentsStatusResponse(rows *sql.Rows) ([]dto.PaymentStatusResponse, error) {
-	defer rows.Close()
-	response := make([]dto.PaymentStatusResponse, 0)
-	for rows.Next() {
-		var data dto.PaymentStatusResponse
-		if err := rows.Scan(&data.ID, &data.Name, &data.Description); err != nil {
-			return make([]dto.PaymentStatusResponse, 0), err
+func newPaymentStatusResponse(row *ent.PaymentStatus) (*models.PaymentStatus, error) {
+	return &models.PaymentStatus{
+		ID:          row.ID,
+		Name:        row.Name,
+		Description: row.Description,
+	}, nil
+}
+
+func newPaymentsStatusResponse(rows []*ent.PaymentStatus) ([]dto.PaymentStatusResponse, error) {
+	if rows == nil {
+		return nil, nil
+	}
+	response := make([]dto.PaymentStatusResponse, len(rows))
+	for i, row := range rows {
+		response[i] = dto.PaymentStatusResponse{
+			ID:          row.ID,
+			Name:        row.Name,
+			Description: row.Description,
 		}
-		response = append(response, data)
 	}
 	return response, nil
 }
 
-func buildPaymentStatusFilters(pgn *pagination.Pagination) (string, []any) {
-	var conditions []string
-	var args []any
-	argIndex := 1
-
+func applyPaymentStatusFilters(query *ent.PaymentStatusQuery, pgn *pagination.Pagination) *ent.PaymentStatusQuery {
 	if pgn.Search != "" {
-		conditions = append(conditions, fmt.Sprintf(
-			"(name ILIKE $%d OR description ILIKE $%d)",
-			argIndex, argIndex+1,
-		))
-		args = append(args, "%"+pgn.Search+"%", "%"+pgn.Search+"%")
-		argIndex += 2
+		query = query.Where(
+			paymentstatus.Or(
+				paymentstatus.NameContainsFold(pgn.Search),
+				paymentstatus.DescriptionContainsFold(pgn.Search),
+			),
+		)
 	}
-
-	filterQuery := ""
-	if len(conditions) > 0 {
-		filterQuery = " WHERE " + strings.Join(conditions, " AND ")
-	}
-
-	return filterQuery, args
+	return query
 }

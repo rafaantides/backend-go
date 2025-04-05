@@ -115,5 +115,5 @@ type PaymentStatusResponse struct {
 	// Nome do status
 	Name string `json:"name"`
 	// Descrião do status
-	Description float64 `json:"description"`
+	Description *string `json:"description"`
 }
