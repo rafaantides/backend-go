@@ -44,6 +44,7 @@ func (d *PostgreSQL) InsertInvoice(ctx context.Context, input models.Invoice) (*
 		SetIssueDate(input.IssueDate).
 		SetDueDate(input.DueDate).
 		Save(ctx)
+		
 	if err != nil {
 		return nil, errs.FailedToSave("categories", err)
 	}
@@ -113,22 +114,21 @@ func newInvoicesResponse(rows []*ent.Invoice) ([]dto.InvoiceResponse, error) {
 	if rows == nil {
 		return nil, nil
 	}
-	data := make([]dto.InvoiceResponse, len(rows))
+	response := make([]dto.InvoiceResponse, len(rows))
 	for i, row := range rows {
-		data[i] = dto.InvoiceResponse{
+		response[i] = dto.InvoiceResponse{
 			ID:        row.ID,
 			Title:     row.Title,
 			Amount:    row.Amount,
 			StatusID:  row.Edges.Status.ID,
-			IssueDate: *utils.ToFormatDateTimePointer(row.IssueDate),
+			IssueDate: *utils.ToFormatDatePointer(row.IssueDate),
 			DueDate:   utils.ToFormatDatePointer(row.DueDate),
 			CreatedAt: *utils.ToFormatDateTimePointer(row.CreatedAt),
 			UpdatedAt: *utils.ToFormatDateTimePointer(row.UpdatedAt),
 			Status:    row.Edges.Status.Name,
 		}
 	}
-
-	return data, nil
+	return response, nil
 }
 
 func applyInvoiceFilters(query *ent.InvoiceQuery, flt dto.InvoiceFilters, pgn *pagination.Pagination) *ent.InvoiceQuery {
@@ -142,7 +142,6 @@ func applyInvoiceFilters(query *ent.InvoiceQuery, flt dto.InvoiceFilters, pgn *p
 			),
 		)
 	}
-
 	if flt.StatusID != nil {
 		statusIds := utils.ToUUIDSlice(*flt.StatusID)
 		if len(statusIds) > 0 {
@@ -151,19 +150,16 @@ func applyInvoiceFilters(query *ent.InvoiceQuery, flt dto.InvoiceFilters, pgn *p
 			)
 		}
 	}
-
 	if flt.MinAmount != nil {
 		query = query.Where(
 			invoice.AmountGTE(*flt.MinAmount),
 		)
 	}
-
 	if flt.MaxAmount != nil {
 		query = query.Where(
 			invoice.AmountLTE(*flt.MaxAmount),
 		)
 	}
-
 	if t := utils.ToTimePointer(flt.StartDate); t != nil {
 		query = query.Where(invoice.IssueDateGTE(*t))
 	}

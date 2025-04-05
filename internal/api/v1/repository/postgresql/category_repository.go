@@ -120,15 +120,15 @@ func newCategoriesResponse(rows []*ent.Category) ([]dto.CategoriesResponse, erro
 	if rows == nil {
 		return nil, nil
 	}
-	data := make([]dto.CategoriesResponse, len(rows))
+	response := make([]dto.CategoriesResponse, len(rows))
 	for i, row := range rows {
-		data[i] = dto.CategoriesResponse{
+		response[i] = dto.CategoriesResponse{
 			ID:          row.ID,
 			Name:        row.Name,
 			Description: row.Description,
 		}
 	}
-	return data, nil
+	return response, nil
 }
 
 func applyCategoryFilters(query *ent.CategoryQuery, pgn *pagination.Pagination) *ent.CategoryQuery {

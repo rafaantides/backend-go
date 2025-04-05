@@ -5,234 +5,203 @@ import (
 	"backend-go/internal/api/v1/dto"
 	"backend-go/internal/api/v1/repository/models"
 	"backend-go/pkg/ent"
-	"database/sql"
+	"backend-go/pkg/ent/category"
+	"backend-go/pkg/ent/debt"
+	"backend-go/pkg/ent/invoice"
+	"backend-go/pkg/ent/paymentstatus"
+	"backend-go/pkg/utils"
 
 	"backend-go/pkg/pagination"
 	"context"
-	"fmt"
-
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 func (d *PostgreSQL) GetDebtByID(ctx context.Context, id uuid.UUID) (*models.Debt, error) {
 	row, err := d.Client.Debt.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return models.Debt{}, errs.ErrNotFound
+			return nil, errs.ErrNotFound
 		}
-		return models.Debt{}, err
+		return nil, err
 	}
-
-	data, err := newDebtResponse(row)
-	if err != nil {
-		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
-	}
-	return data, nil
+	return newDebtResponse(row)
 }
 
 func (d *PostgreSQL) DeleteDebtByID(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM debts WHERE id = $1`
-	result, err := d.DB.Exec(query, id)
+	err := d.Client.Debt.DeleteOneID(id).Exec(ctx)
 	if err != nil {
+		if ent.IsNotFound(err) {
+			return errs.ErrNotFound
+		}
 		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errs.ErrNotFound
 	}
 	return nil
 }
 
 func (d *PostgreSQL) InsertDebt(ctx context.Context, input models.Debt) (*models.Debt, error) {
-	query := `INSERT INTO debts (invoice_id, title, category_id, amount, purchase_date, due_date)
-			  VALUES ($1, $2, $3, $4, $5, $6)
-			  RETURNING *`
+	created, err := d.Client.Debt.
+		Create().
+		SetTitle(input.Title).
+		SetAmount(input.Amount).
+		SetDueDate(input.DueDate).
+		SetPurchaseDate(input.PurchaseDate).
+		SetStatusID(*input.StatusID).
+		SetInvoiceID(*input.InvoiceID).
+		SetCategoryID(*input.CategoryID).
+		Save(ctx)
 
-	row := d.DB.QueryRow(query, debt.InvoiceID, debt.Title, debt.CategoryID,
-		debt.Amount, debt.PurchaseDate, debt.DueDate)
-	data, err := newDebtResponse(row)
 	if err != nil {
-		return models.Debt{}, fmt.Errorf("failed to insert debt: %w", err)
+		return nil, errs.FailedToSave("debts", err)
 	}
-	return data, nil * sql.Rows
+	return newDebtResponse(created)
 }
 
 func (d *PostgreSQL) UpdateDebt(ctx context.Context, input models.Debt) (*models.Debt, error) {
-	query := `
-		UPDATE debts
-		SET title = $1, amount = $2, purchase_date = $3, category_id = $4 , status_id = $5
-		WHERE id = $6
-		RETURNING *
-	`
-	row := d.DB.QueryRow(query, debt.Title, debt.Amount, debt.PurchaseDate, debt.CategoryID, debt.StatusID, debt.ID)
-	data, err := newDebtResponse(row)
+	updated, err := d.Client.Debt.
+		UpdateOneID(input.ID).
+		SetTitle(input.Title).
+		SetAmount(input.Amount).
+		SetDueDate(input.DueDate).
+		SetPurchaseDate(input.PurchaseDate).
+		SetStatusID(*input.StatusID).
+		SetInvoiceID(*input.InvoiceID).
+		SetCategoryID(*input.CategoryID).
+		Save(ctx)
+
 	if err != nil {
-		return models.Debt{}, fmt.Errorf("failed to update debt: %w", err)
+		if ent.IsNotFound(err) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, errs.FailedToSave("debts", err)
 	}
-	return data, nil
+	return newDebtResponse(updated)
 }
 
 func (d *PostgreSQL) ListDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) ([]dto.DebtsResponse, error) {
-	query := `
-        SELECT
-            d.id,
-            d.title,
-            d.amount,
-            d.purchase_date,
-            d.due_date,
-            d.category_id,
-            d.status_id,
-            d.created_at,
-            d.updated_at,
-            c.name AS category,
-            i.title AS invoice_title,
-            s.name AS status
-        FROM debts d
-        LEFT JOIN categories c ON d.category_id = c.id
-        LEFT JOIN payment_status s ON d.status_id = s.id
-        LEFT JOIN invoices i ON d.invoice_id = i.id
-    `
-	filterQuery, args := buildDebtFilters(flt, pgn)
-	query += filterQuery
-	query += fmt.Sprintf(" ORDER BY d.%s DESC", pgn.OrderBy)
-	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)+1, len(args)+2)
-	args = append(args, pgn.PageSize, pgn.Offset())
+	query := d.Client.Debt.Query()
 
-	rows, err := d.DB.Query(query, args...)
+	query = applyDebtFilters(query, flt, pgn)
+	query = query.Order(ent.Desc(pgn.OrderBy))
+	query = query.Limit(pgn.PageSize).Offset(pgn.Offset())
+
+	data, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return newDebtsResponse(rows)
+	return newDebtsResponse(data)
 }
 
 func (d *PostgreSQL) CountDebts(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) (int, error) {
-	query := "SELECT COUNT(*) FROM debts d LEFT JOIN categories c ON d.category_id = c.id LEFT JOIN payment_status s ON d.status_id = s.id LEFT JOIN invoices i ON d.invoice_id = i.id"
-	filterQuery, args := buildDebtFilters(flt, pgn)
-	query += filterQuery
+	query := d.Client.Debt.Query()
+	query = applyDebtFilters(query, flt, pgn)
 
-	var total int
-	err := d.DB.QueryRow(query, args...).Scan(&total)
-	return total, err
+	total, err := query.Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
 }
 
-func newDebtResponse(debt *ent.Debt) (models.Debt, error) {
-	if debt == nil {
-		return models.Debt{}, fmt.Errorf("debt is nil")
-	}
-
-	return models.Debt{
-		ID:           debt.ID,
-		Title:        debt.Title,
-		InvoiceID:    &debt.Edges.Invoice.ID,
-		CategoryID:   &debt.Edges.Category.ID,
-		Amount:       debt.Amount,
-		PurchaseDate: debt.PurchaseDate,
-		DueDate:      debt.DueDate,
-		StatusID:     &debt.Edges.Status.ID,
-		CreatedAt:    debt.CreatedAt,
-		UpdatedAt:    debt.UpdatedAt,
+func newDebtResponse(row *ent.Debt) (*models.Debt, error) {
+	return &models.Debt{
+		ID:           row.ID,
+		Title:        row.Title,
+		InvoiceID:    &row.Edges.Invoice.ID,
+		CategoryID:   &row.Edges.Category.ID,
+		Amount:       row.Amount,
+		PurchaseDate: row.PurchaseDate,
+		DueDate:      row.DueDate,
+		StatusID:     &row.Edges.Status.ID,
+		CreatedAt:    row.CreatedAt,
+		UpdatedAt:    row.UpdatedAt,
 	}, nil
 }
 
-// TODO: mudar para o utils
-func strPtr(s string) *string {
-	if s == "" {
-		return nil
+func newDebtsResponse(rows []*ent.Debt) ([]dto.DebtsResponse, error) {
+	if rows == nil {
+		return nil, nil
 	}
-	return &s
-}
-
-func newDebtsResponse(debts []*ent.Debt) ([]dto.DebtsResponse, error) {
-	if debts == nil {
-		return nil, fmt.Errorf("debts slice is nil")
-	}
-
-	response := make([]dto.DebtsResponse, 0, len(debts))
-	for _, debt := range debts {
+	response := make([]dto.DebtsResponse, len(rows))
+	for _, row := range rows {
 		response = append(response, dto.DebtsResponse{
-			ID:     debt.ID,
-			Title:  debt.Title,
-			Amount: debt.Amount,
-			// TODO: colocar invoiceID
-			// TODO: mudar para um utils
-			PurchaseDate: debt.PurchaseDate.Format("2006-01-02"),
-			DueDate:      strPtr(debt.DueDate.Format("2006-01-02")),
-			CategoryID:   &debt.Edges.Category.ID,
-			StatusID:     &debt.Edges.Status.ID,
-			// TODO: mudar para um utils
-			CreatedAt:    debt.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:    debt.UpdatedAt.Format(time.RFC3339),
-			Category:     &debt.Edges.Category.Name,
-			InvoiceTitle: &debt.Edges.Invoice.Title,
-			Status:       &debt.Edges.Status.Name,
+			ID:           row.ID,
+			Title:        row.Title,
+			Amount:       row.Amount,
+			PurchaseDate: *utils.ToFormatDateTimePointer(row.PurchaseDate),
+			DueDate:      utils.ToFormatDatePointer(row.DueDate),
+			CategoryID:   &row.Edges.Category.ID,
+			StatusID:     &row.Edges.Status.ID,
+			CreatedAt:    *utils.ToFormatDateTimePointer(row.CreatedAt),
+			UpdatedAt:    *utils.ToFormatDateTimePointer(row.UpdatedAt),
+			Category:     &row.Edges.Category.Name,
+			InvoiceTitle: &row.Edges.Invoice.Title,
+			Status:       &row.Edges.Status.Name,
 		})
 	}
-
 	return response, nil
 }
 
-func buildDebtFilters(ctx context.Context, flt dto.DebtFilters, pgn *pagination.Pagination) (string, []any) {
-	var conditions []string
-	var args []any
-	argIndex := 1
-
+func applyDebtFilters(query *ent.DebtQuery, flt dto.DebtFilters, pgn *pagination.Pagination) *ent.DebtQuery {
 	if pgn.Search != "" {
-		conditions = append(conditions, fmt.Sprintf(
-			"(d.title ILIKE $%d OR c.name ILIKE $%d OR i.title ILIKE $%d OR s.name ILIKE $%d)",
-			argIndex, argIndex+1, argIndex+2, argIndex+3,
-		))
-		args = append(args, "%"+pgn.Search+"%", "%"+pgn.Search+"%", "%"+pgn.Search+"%", "%"+pgn.Search+"%")
-		argIndex += 4
+		query = query.Where(
+			debt.Or(
+				debt.TitleContainsFold(pgn.Search),
+				debt.HasStatusWith(
+					paymentstatus.NameContainsFold(pgn.Search),
+				),
+				debt.HasCategoryWith(
+					category.NameContainsFold(pgn.Search),
+				),
+				debt.HasInvoiceWith(
+					invoice.TitleContains(pgn.Search),
+				),
+			),
+		)
+	}
+
+	if flt.StatusID != nil {
+		statusIds := utils.ToUUIDSlice(*flt.StatusID)
+		if len(statusIds) > 0 {
+			query = query.Where(
+				debt.HasStatusWith(paymentstatus.IDIn(statusIds...)),
+			)
+		}
 	}
 	if flt.CategoryID != nil {
-		conditions = append(conditions, fmt.Sprintf("d.category_id = ANY($%d)", argIndex))
-		args = append(args, pq.Array(*flt.CategoryID))
-		argIndex++
-	}
-	if flt.StatusID != nil {
-		conditions = append(conditions, fmt.Sprintf("d.status_id = ANY($%d)", argIndex))
-		args = append(args, pq.Array(*flt.StatusID))
-		argIndex++
+		categoryIds := utils.ToUUIDSlice(*flt.CategoryID)
+		if len(categoryIds) > 0 {
+			query = query.Where(
+				debt.HasCategoryWith(category.IDIn(categoryIds...)),
+			)
+		}
 	}
 	if flt.InvoiceID != nil {
-		conditions = append(conditions, fmt.Sprintf("d.invoice_id = ANY($%d)", argIndex))
-		args = append(args, pq.Array(*flt.InvoiceID))
-		argIndex++
+		invoiceIds := utils.ToUUIDSlice(*flt.InvoiceID)
+		if len(invoiceIds) > 0 {
+			query = query.Where(
+				debt.HasInvoiceWith(invoice.IDIn(invoiceIds...)),
+			)
+		}
 	}
 	if flt.MinAmount != nil {
-		conditions = append(conditions, fmt.Sprintf("d.amount >= $%d", argIndex))
-		args = append(args, *flt.MinAmount)
-		argIndex++
+		query = query.Where(
+			debt.AmountGTE(*flt.MinAmount),
+		)
 	}
 	if flt.MaxAmount != nil {
-		conditions = append(conditions, fmt.Sprintf("d.amount <= $%d", argIndex))
-		args = append(args, *flt.MaxAmount)
-		argIndex++
+		query = query.Where(
+			debt.AmountLTE(*flt.MaxAmount),
+		)
 	}
-	if flt.StartDate != nil {
-		conditions = append(conditions, fmt.Sprintf("d.purchase_date >= $%d", argIndex))
-		args = append(args, *flt.StartDate)
-		argIndex++
-	}
-	if flt.EndDate != nil {
-		conditions = append(conditions, fmt.Sprintf("d.purchase_date <= $%d", argIndex))
-		args = append(args, *flt.EndDate)
-		argIndex++
+	if t := utils.ToTimePointer(flt.StartDate); t != nil {
+		query = query.Where(debt.PurchaseDateGTE(*t))
 	}
 
-	filterQuery := ""
-	if len(conditions) > 0 {
-		filterQuery = " WHERE " + strings.Join(conditions, " AND ")
+	if t := utils.ToTimePointer(flt.EndDate); t != nil {
+		query = query.Where(debt.PurchaseDateLTE(*t))
 	}
 
-	return filterQuery, args
+	return query
 }

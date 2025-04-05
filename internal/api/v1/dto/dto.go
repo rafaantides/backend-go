@@ -15,6 +15,7 @@ type DebtsResponse struct {
 	// ID único do débito
 	ID uuid.UUID `json:"id"`
 	// Título da fatura associada
+	// TODO: colocar invoiceID
 	InvoiceTitle *string `json:"invoice_title"`
 	// Título do débito
 	Title string `json:"title"`
